@@ -31,6 +31,7 @@ const useCourseSelection = create(
             Polytechnic: [],
             ITI: [],
           };
+          console.log(response);
 
           // Validate course data
           const validCourses = response.data.filter((course) => {

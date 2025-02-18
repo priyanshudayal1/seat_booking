@@ -13,11 +13,14 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import CourseSelection from "./pages/Dashboard/CourseSelection";
 import Payment from "./pages/Dashboard/Payment";
+import Map from "./pages/Dashboard/Map";
+import NewCourseSelection from "./pages/Dashboard/NewCourseSelection";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
       <Route path="/" element={<Home />} />
+      <Route path="/home" element={<Map />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route
@@ -30,6 +33,7 @@ const router = createBrowserRouter(
       >
         <Route index element={<DashboardHome />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="new-course-selection" element={<NewCourseSelection />} />
         <Route path="course-selection" element={<CourseSelection />} />
         <Route path="payment" element={<Payment />} />
       </Route>

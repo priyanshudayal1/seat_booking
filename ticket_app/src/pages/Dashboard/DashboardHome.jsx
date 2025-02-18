@@ -131,7 +131,7 @@ const DashboardHome = () => {
                   </h3>
                 </div>
                 <Link
-                  to="/dashboard/course-selection"
+                  to="/dashboard/new-course-selection"
                   className="mt-2 bg-gray-50 text-blue-600 px-6 py-3 rounded-xl hover:bg-blue-500 hover:text-white w-full inline-block text-center transition-all duration-300 font-medium"
                 >
                   Select Branches
