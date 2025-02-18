@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../../lib/api";
@@ -139,21 +139,73 @@ const CourseTable = ({ selections }) => (
   </div>
 );
 
+const OTPInput = ({ value, onChange, disabled }) => {
+  // Create refs array properly inside the component
+  const inputRefs = useRef([...Array(6)].map(() => React.createRef()));
+
+  const handleChange = (index, inputValue) => {
+    const newValue = value.split('');
+    newValue[index] = inputValue;
+    const combinedValue = newValue.join('');
+    onChange(combinedValue);
+
+    // Move to next input if value is entered
+    if (inputValue && index < 5) {
+      inputRefs.current[index + 1].current?.focus();
+    }
+  };
+
+  const handleKeyDown = (index, e) => {
+    // Move to previous input on backspace if current input is empty
+    if (e.key === 'Backspace' && !value[index] && index > 0) {
+      inputRefs.current[index - 1].current?.focus();
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    onChange(pastedData);
+    
+    // Focus the next empty input after paste
+    const nextEmptyIndex = pastedData.length < 6 ? pastedData.length : 5;
+    inputRefs.current[nextEmptyIndex].current?.focus();
+  };
+
+  return (
+    <div className="flex gap-2 sm:gap-3 justify-center">
+      {[...Array(6)].map((_, index) => (
+        <input
+          key={index}
+          ref={inputRefs.current[index]}
+          type="text"
+          maxLength={1}
+          value={value[index] || ''}
+          onChange={(e) => handleChange(index, e.target.value.replace(/\D/g, ''))}
+          onKeyDown={(e) => handleKeyDown(index, e)}
+          onPaste={index === 0 ? handlePaste : undefined}
+          disabled={disabled}
+          className="w-9 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-semibold 
+            border-2 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 
+            focus:outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400"
+        />
+      ))}
+    </div>
+  );
+};
+
 const OTPVerificationSection = ({ onVerified, loading, setLoading }) => {
   const [otp, setOtp] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const { selectedCourses } = useCourseSelection();
-  const totalAmount = Object.values(selectedCourses).reduce(
-    (total, course) => total + course.totalPrice,
-    0
-  );
+  const selectedCourses = useCourseSelection((state) => state.selectedCourses);
+  const userId = useLoginStore((state) => state.userId);
 
   const handleSendOTP = async () => {
     setLoading(true);
     try {
       const response = await api.post("/user/generate-otp", {
-        userId: useLoginStore.getState().userId,
+        userId,
         selected_courses: Object.values(selectedCourses).map((course) => ({
           course_id: course.id,
           courseName: course.courseName,
@@ -162,10 +214,13 @@ const OTPVerificationSection = ({ onVerified, loading, setLoading }) => {
           pricePerSeat: course.pricePerSeat,
           totalPrice: course.totalPrice,
         })),
-        total_price: totalAmount,
+        total_price: Object.values(selectedCourses).reduce(
+          (total, course) => total + parseFloat(course.totalPrice || 0),
+          0
+        ),
       });
       toast.success("OTP sent successfully!");
-      setPhoneNumber(response.data.phone);
+      setPhoneNumber(response.data.phone || "");
       setOtpSent(true);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to send OTP");
@@ -184,7 +239,7 @@ const OTPVerificationSection = ({ onVerified, loading, setLoading }) => {
     try {
       await api.post("/user/verify-otp", {
         otp,
-        userId: useLoginStore.getState().userId,
+        userId,
       });
       toast.success("OTP verified successfully!");
       onVerified();
@@ -226,26 +281,19 @@ const OTPVerificationSection = ({ onVerified, loading, setLoading }) => {
       ) : (
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            Enter the OTP sent to {phoneNumber}
+            Enter the OTP sent to {phoneNumber || "your registered number"}
           </p>
-          <div className="flex space-x-3">
-            <input
-              type="text"
+          <div className="flex flex-col items-center space-y-4">
+            <OTPInput 
               value={otp}
-              onChange={(e) =>
-                setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
-              }
-              className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 
-                tracking-wider text-center"
-              placeholder="Enter 6-digit OTP"
-              maxLength={6}
+              onChange={setOtp}
               disabled={loading}
             />
             <button
               onClick={handleVerifyOTP}
               disabled={loading || otp.length !== 6}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
-                disabled:bg-blue-300 disabled:cursor-not-allowed flex items-center gap-2"
+              className="w-full sm:w-auto px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
+                disabled:bg-blue-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -253,17 +301,19 @@ const OTPVerificationSection = ({ onVerified, loading, setLoading }) => {
                   <span>Verifying...</span>
                 </>
               ) : (
-                "Verify"
+                "Verify OTP"
               )}
             </button>
           </div>
-          <button
-            onClick={handleSendOTP}
-            disabled={loading}
-            className="text-blue-500 hover:text-blue-600 text-sm"
-          >
-            Resend OTP
-          </button>
+          <div className="text-center">
+            <button
+              onClick={handleSendOTP}
+              disabled={loading}
+              className="text-blue-500 hover:text-blue-600 text-sm"
+            >
+              Resend OTP
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -275,7 +325,18 @@ const Payment = () => {
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const { selectedCourses, reset } = useCourseSelection();
+  
+  const selectedCourses = useCourseSelection((state) => state.selectedCourses);
+  const reset = useCourseSelection((state) => state.reset);
+  const userId = useLoginStore((state) => state.userId);
+
+  useEffect(() => {
+    // Redirect if no courses are selected
+    if (Object.keys(selectedCourses).length === 0) {
+      toast.error("Please select courses before proceeding to payment");
+      navigate("/dashboard/new-course-selection");
+    }
+  }, [selectedCourses, navigate]);
 
   const paymentMethods = [
     {
@@ -298,11 +359,6 @@ const Payment = () => {
     },
   ];
 
-  const totalAmount = Object.values(selectedCourses).reduce(
-    (total, course) => total + course.totalPrice,
-    0
-  );
-
   const handlePayment = async () => {
     if (!paymentMethod) {
       toast.error("Please select a payment method");
@@ -314,10 +370,16 @@ const Payment = () => {
       return;
     }
 
+    if (Object.keys(selectedCourses).length === 0) {
+      toast.error("No courses selected for payment");
+      return;
+    }
+
     setIsProcessing(true);
     try {
       const paymentResponse = await api.post("/billing/process-payment", {
         payment_method: paymentMethod,
+        userId,
         selected_courses: Object.values(selectedCourses).map((course) => ({
           course_id: course.id,
           courseName: course.courseName,
@@ -326,7 +388,10 @@ const Payment = () => {
           pricePerSeat: course.pricePerSeat,
           totalPrice: course.totalPrice,
         })),
-        total_amount: totalAmount,
+        total_amount: Object.values(selectedCourses).reduce(
+          (total, course) => total + parseFloat(course.totalPrice || 0),
+          0
+        ),
       });
 
       if (paymentResponse.data.transaction_id) {
@@ -345,7 +410,7 @@ const Payment = () => {
   };
 
   const handleBack = () => {
-    navigate("/dashboard/course-selection");
+    navigate("/dashboard/new-course-selection");
   };
 
   if (Object.keys(selectedCourses).length === 0) {

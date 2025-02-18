@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MapPin,
-  School,
   Check,
   ChevronLeft,
   AlertCircle,
@@ -10,7 +9,6 @@ import {
 import useCourseSelection from "../../store/useCourseSelection";
 import StateMap from "./Map";
 import { motion } from "framer-motion";
-import { toast } from "react-hot-toast";
 
 const LoadingState = () => (
   <div className="max-w-5xl mx-auto p-8">
@@ -20,7 +18,7 @@ const LoadingState = () => (
   </div>
 );
 
-const CourseStep = ({ course, seats, onSeatChange, onSelect, isSelected }) => (
+const CourseStep = ({ course, onSelect, isSelected }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -103,7 +101,7 @@ const NoCourses = () => (
 );
 
 const NewCourseSelection = () => {
-  const { courses, fetchCourses, isLoading } = useCourseSelection();
+  const { courses = [], fetchCourses, isLoading, reset } = useCourseSelection();
   const [selectedCity, setSelectedCity] = useState(null);
   const navigate = useNavigate();
 
@@ -112,19 +110,21 @@ const NewCourseSelection = () => {
   }, [fetchCourses]);
 
   const cities = useMemo(() => {
+    if (!Array.isArray(courses)) return [];
+    
     const uniqueCities = [...new Set(courses.map(course => course.city))];
     return uniqueCities.sort();
   }, [courses]);
 
   const filteredCourses = useMemo(() => {
-    return selectedCity
-      ? courses.filter(course => course.city === selectedCity)
-      : [];
+    if (!selectedCity || !Array.isArray(courses)) return [];
+    
+    return courses.filter(course => course.city === selectedCity);
   }, [courses, selectedCity]);
 
-  const handleCourseSelect = (courseId, isSelected) => {
-    // Handle course selection
-    navigate("/dashboard/course-selection");
+  const handleCourseSelect = () => {
+    reset(); // Reset any existing selections before navigating
+    navigate(`/dashboard/city/${selectedCity}`);
   };
 
   if (isLoading) {

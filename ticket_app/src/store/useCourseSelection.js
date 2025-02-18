@@ -163,17 +163,12 @@ const useCourseSelection = create(
       },
 
       // Reset store state
-      reset: () =>
-        set(
-          {
-            currentStep: 0,
-            selectedCourses: {},
-            selections: {},
-            error: null,
-            courseData: null,
-          },
-          true
-        ),
+      reset: () => {
+        set({
+          selectedCourses: {},
+          error: null
+        });
+      },
 
       // Get current step's courses
       getCurrentStepCourses: () => {
