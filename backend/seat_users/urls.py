@@ -14,6 +14,5 @@ urlpatterns = [
     path('course/<str:course_name>', views.get_course_details, name='get_course_details'),
     path('course/generate-otp', views.generate_course_otp, name='generate_course_otp'),
     path('course/verify-otp', views.verify_course_otp, name='verify_course_otp'),
-    path('course/create-sample-data', views.create_sample_data, name='create_sample_data'),
     path('course/update-multiple', views.update_multiple_courses, name='update_multiple_courses'),
 ]

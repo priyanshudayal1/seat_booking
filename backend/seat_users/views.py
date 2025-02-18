@@ -83,59 +83,74 @@ def update_profile(request, user_id):
         except User.DoesNotExist:
             return JsonResponse({"message": "User not found"}, status=404)
 
-def send_sms(phone_number, otp):
-    url = "https://www.fast2sms.com/dev/bulkV2"
-    headers = {
-        "authorization": os.getenv("FAST2SMS_API_KEY", "your-api-key"),
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "variables_values": otp,
-        "route": "otp",
-        "numbers": phone_number,
-    }
+from django.core.mail import send_mail
+
+def send_sms(email, otp):
+    subject = "Your OTP Code"
+    message = f"Your OTP code is {otp}."
+    from_email = os.getenv("EMAIL_HOST_USER", "your-email@example.com")
+    recipient_list = [email]
     
     try:
-        response = requests.post(url, headers=headers, json=payload)
-        return response.json()
+        send_mail(subject, message, from_email, recipient_list)
+        return {"status": True, "message": "Email sent successfully"}
     except Exception as e:
-        print(f"SMS sending failed: {str(e)}")
-        return None
+        print(f"Email sending failed: {str(e)}")
+        return {"status": "error", "message": str(e)}
 
 @csrf_exempt
 @require_POST
 def generate_otp(request):
-    user_id = request.user.id
     data = json.loads(request.body)
     
-    user = User.objects.get(pk=user_id)
-    if not user or not user.phone_number:
-        return JsonResponse({"message": "User phone number not found"}, status=400)
+    # Get user ID and verify user exists
+    user_id = data.get('userId')
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({"message": "User not found"}, status=404)
+
+    if not user.email:
+        return JsonResponse({"message": "User email not found"}, status=400)
     
+    # Generate OTP
     otp = ''.join(random.choices(string.digits, k=6))
-    sms_response = send_sms(user.phone_number, otp)
-    if not sms_response or not sms_response.get("return"):
-        return JsonResponse({"message": "Failed to send OTP"}, status=500)
     
-    billing, created = Billing.objects.get_or_create(user=user, payment_status='pending')
+    # Send OTP via email
+    sms_response = send_sms(user.email, otp)
+    
+    # Create or update billing record
+    billing, created = Billing.objects.get_or_create(
+        user=user,
+        payment_status='pending',
+        defaults={
+            'selected_courses': data.get('selected_courses', []),
+            'total_price': data.get('total_price', 0)
+        }
+    )
+    
+    if not created:
+        billing.selected_courses = data.get('selected_courses', [])
+        billing.total_price = data.get('total_price', 0)
+    
     billing.otp = otp
-    billing.selected_courses = data.get('selected_courses')
-    billing.total_price = data.get('total_price')
     billing.save()
     
     return JsonResponse({
-        "message": "OTP sent successfully",
-        "phone": f"xxxxxx{user.phone_number[-4:]}"
+        "message": "OTP sent successfully", 
+        "phone": f"{'*' * (len(user.email.split('@')[0]) - 2)}{user.email[-2:]}@{user.email.split('@')[1]}"
     })
 
 @csrf_exempt
 @require_POST
 def verify_otp(request):
-    user_id = request.user.id
     data = json.loads(request.body)
+    user_id = data.get('userId')
+    print(data)
     
     try:
-        billing = Billing.objects.get(user_id=user_id, payment_status='pending')
+        billing = Billing.objects.get(user_id=user_id)
+        print(billing.otp, data['otp'])
         if billing.otp != data['otp']:
             return JsonResponse({"message": "Invalid OTP"}, status=400)
         
@@ -267,23 +282,8 @@ def verify_course_otp(request):
     except Exception as e:
         return JsonResponse({'message': str(e)}, status=500)
 
-def create_sample_data(request):
-    try:
-        sample_courses = [
-            # ...sample course data...
-        ]
-
-        Course.objects.all().delete()
-
-        for course_data in sample_courses:
-            course_data['left_seats'] = course_data['total_seats'] - course_data['locked_seats']
-            course = Course(**course_data)
-            course.save()
-
-        return JsonResponse({"message": "Sample courses created successfully", "count": len(sample_courses)}, status=201)
-    except Exception as e:
-        return JsonResponse({"message": "Error creating sample data", "error": str(e)}, status=500)
-
+# NOTE : for testing data creation
+@csrf_exempt
 def update_multiple_courses(request):
     try:
         Course.objects.filter(course_name='B.Tech').update(price_per_seat=250000)

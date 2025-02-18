@@ -3,11 +3,31 @@ from django.utils import timezone
 
 class Billing(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE)
-    selected_courses = models.JSONField()
+    selected_courses = models.JSONField(help_text="""
+        Format: [
+            {
+                'courseName': str,
+                'branch': str, 
+                'selectedSeats': int,
+                'pricePerSeat': decimal,
+                'totalPrice': decimal
+            }
+        ]
+    """)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     otp = models.CharField(max_length=10, blank=True, null=True)
     payment_status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('completed', 'Completed')], default='pending')
     created_at = models.DateTimeField(default=timezone.now)
+    is_verified = models.BooleanField(default=False)
+
+    def clean(self):
+        if self.selected_courses:
+            for course in self.selected_courses:
+                required_fields = ['courseName', 'branch', 'selectedSeats', 'pricePerSeat', 'totalPrice']
+                if not all(field in course for field in required_fields):
+                    raise ValidationError('Invalid course selection format')
+                if not isinstance(course['selectedSeats'], int) or course['selectedSeats'] < 1:
+                    raise ValidationError('Selected seats must be a positive integer')
 
     def to_dict(self):
         return {

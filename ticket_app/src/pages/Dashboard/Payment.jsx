@@ -1,12 +1,27 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import api from "../../lib/api";
 import useCourseSelection from "../../store/useCourseSelection";
-import { CreditCard, Wallet, Building, AlertCircle, Loader2, ArrowLeft, Lock } from "lucide-react";
+import {
+  CreditCard,
+  Wallet,
+  Building,
+  AlertCircle,
+  Loader2,
+  ArrowLeft,
+  Lock,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
+import useLoginStore from "../../store/useLogin";
 
-const PaymentMethodCard = ({ icon: Icon, title, description, selected, onSelect }) => (
+const PaymentMethodCard = ({
+  icon: Icon,
+  title,
+  description,
+  selected,
+  onSelect,
+}) => (
   <motion.div
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
@@ -18,11 +33,17 @@ const PaymentMethodCard = ({ icon: Icon, title, description, selected, onSelect 
     onClick={onSelect}
   >
     <div className="flex items-start space-x-3 sm:space-x-4">
-      <div className={`p-2 sm:p-2.5 lg:p-3 rounded-lg ${selected ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
+      <div
+        className={`p-2 sm:p-2.5 lg:p-3 rounded-lg ${
+          selected ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600"
+        }`}
+      >
         <Icon size={18} className="sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
       </div>
       <div>
-        <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{title}</h3>
+        <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
+          {title}
+        </h3>
         <p className="text-xs sm:text-sm text-gray-600">{description}</p>
       </div>
     </div>
@@ -30,11 +51,11 @@ const PaymentMethodCard = ({ icon: Icon, title, description, selected, onSelect 
 );
 
 const formatPrice = (price) => {
-  return parseFloat(price).toLocaleString('en-IN', {
-    style: 'currency',
-    currency: 'INR',
+  return parseFloat(price).toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   });
 };
 
@@ -65,16 +86,24 @@ const CourseTable = ({ selections }) => (
           {Object.entries(selections).map(([id, course]) => (
             <tr key={id} className="hover:bg-gray-50">
               <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap">
-                <div className="text-xs sm:text-sm font-medium text-gray-900">{course.courseName}</div>
+                <div className="text-xs sm:text-sm font-medium text-gray-900">
+                  {course.courseName}
+                </div>
               </td>
               <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap">
-                <div className="text-xs sm:text-sm text-gray-500">{course.branch}</div>
+                <div className="text-xs sm:text-sm text-gray-500">
+                  {course.branch}
+                </div>
               </td>
               <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap">
-                <div className="text-xs sm:text-sm text-gray-900">{course.selectedSeats}</div>
+                <div className="text-xs sm:text-sm text-gray-900">
+                  {course.selectedSeats}
+                </div>
               </td>
               <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap text-right">
-                <div className="text-xs sm:text-sm text-gray-900">{formatPrice(course.pricePerSeat)}</div>
+                <div className="text-xs sm:text-sm text-gray-900">
+                  {formatPrice(course.pricePerSeat)}
+                </div>
               </td>
               <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap text-right">
                 <div className="text-xs sm:text-sm font-medium text-blue-600">
@@ -86,14 +115,20 @@ const CourseTable = ({ selections }) => (
         </tbody>
         <tfoot className="bg-gray-50">
           <tr>
-            <td colSpan="4" className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 text-right font-medium text-gray-900">
+            <td
+              colSpan="4"
+              className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 text-right font-medium text-gray-900"
+            >
               Total Amount:
             </td>
             <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap text-right">
               <div className="text-base sm:text-lg font-bold text-blue-600">
                 {formatPrice(
-                  Object.values(selections)
-                    .reduce((total, course) => total + (parseFloat(course.totalPrice) || 0), 0)
+                  Object.values(selections).reduce(
+                    (total, course) =>
+                      total + (parseFloat(course.totalPrice) || 0),
+                    0
+                  )
                 )}
               </div>
             </td>
@@ -108,11 +143,27 @@ const OTPVerificationSection = ({ onVerified, loading, setLoading }) => {
   const [otp, setOtp] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+  const { selectedCourses } = useCourseSelection();
+  const totalAmount = Object.values(selectedCourses).reduce(
+    (total, course) => total + course.totalPrice,
+    0
+  );
 
   const handleSendOTP = async () => {
     setLoading(true);
     try {
-      const response = await api.post('//billing/generate-otp', {});
+      const response = await api.post("/user/generate-otp", {
+        userId: useLoginStore.getState().userId,
+        selected_courses: Object.values(selectedCourses).map((course) => ({
+          course_id: course.id,
+          courseName: course.courseName,
+          branch: course.branch,
+          selectedSeats: course.selectedSeats,
+          pricePerSeat: course.pricePerSeat,
+          totalPrice: course.totalPrice,
+        })),
+        total_price: totalAmount,
+      });
       toast.success("OTP sent successfully!");
       setPhoneNumber(response.data.phone);
       setOtpSent(true);
@@ -131,7 +182,10 @@ const OTPVerificationSection = ({ onVerified, loading, setLoading }) => {
 
     setLoading(true);
     try {
-      await api.post('//billing/verify-otp', { otp });
+      await api.post("/user/verify-otp", {
+        otp,
+        userId: useLoginStore.getState().userId,
+      });
       toast.success("OTP verified successfully!");
       onVerified();
     } catch (error) {
@@ -151,7 +205,7 @@ const OTPVerificationSection = ({ onVerified, loading, setLoading }) => {
       {!otpSent ? (
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            We'll send a verification code to your registered phone number.
+            We&apos;ll send a verification code to your registered phone number.
           </p>
           <button
             onClick={handleSendOTP}
@@ -178,7 +232,9 @@ const OTPVerificationSection = ({ onVerified, loading, setLoading }) => {
             <input
               type="text"
               value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              onChange={(e) =>
+                setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
               className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 
                 tracking-wider text-center"
               placeholder="Enter 6-digit OTP"
@@ -242,8 +298,10 @@ const Payment = () => {
     },
   ];
 
-  const totalAmount = Object.values(selectedCourses)
-    .reduce((total, course) => total + course.totalPrice, 0);
+  const totalAmount = Object.values(selectedCourses).reduce(
+    (total, course) => total + course.totalPrice,
+    0
+  );
 
   const handlePayment = async () => {
     if (!paymentMethod) {
@@ -258,8 +316,17 @@ const Payment = () => {
 
     setIsProcessing(true);
     try {
-      const paymentResponse = await api.post(`//billing/process-payment`, {
+      const paymentResponse = await api.post("/billing/process-payment", {
         payment_method: paymentMethod,
+        selected_courses: Object.values(selectedCourses).map((course) => ({
+          course_id: course.id,
+          courseName: course.courseName,
+          branch: course.branch,
+          selectedSeats: course.selectedSeats,
+          pricePerSeat: course.pricePerSeat,
+          totalPrice: course.totalPrice,
+        })),
+        total_amount: totalAmount,
       });
 
       if (paymentResponse.data.transaction_id) {
@@ -268,8 +335,10 @@ const Payment = () => {
         navigate("/dashboard");
       }
     } catch (error) {
-      console.error('Payment error:', error);
-      toast.error(error.response?.data?.message || "Payment failed. Please try again.");
+      console.error("Payment error:", error);
+      toast.error(
+        error.response?.data?.message || "Payment failed. Please try again."
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -286,7 +355,8 @@ const Payment = () => {
           <div className="flex items-center">
             <AlertCircle className="text-orange-400 mr-3" />
             <p className="text-orange-700">
-              No courses selected. Please select courses before proceeding to payment.
+              No courses selected. Please select courses before proceeding to
+              payment.
             </p>
           </div>
           <button
@@ -309,7 +379,9 @@ const Payment = () => {
         className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-3 sm:p-4 lg:p-8"
       >
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
-          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Payment Details</h1>
+          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+            Payment Details
+          </h1>
           <button
             onClick={handleBack}
             className="text-gray-600 hover:text-gray-800 flex items-center text-sm sm:text-base"
@@ -325,7 +397,7 @@ const Payment = () => {
           </div>
         </div>
 
-        <OTPVerificationSection 
+        <OTPVerificationSection
           onVerified={() => setIsVerified(true)}
           loading={isProcessing}
           setLoading={setIsProcessing}
@@ -335,7 +407,11 @@ const Payment = () => {
           <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
             Select Payment Method
           </h2>
-          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 ${!isVerified ? 'opacity-50 pointer-events-none' : ''}`}>
+          <div
+            className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 ${
+              !isVerified ? "opacity-50 pointer-events-none" : ""
+            }`}
+          >
             {paymentMethods.map((method) => (
               <PaymentMethodCard
                 key={method.id}
