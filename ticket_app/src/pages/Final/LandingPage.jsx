@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import {
   GraduationCap,
   MapPin,
@@ -9,9 +9,15 @@ import {
   Lock,
   Wrench,
   School,
+  ArrowRight,
+  Globe,
 } from "lucide-react";
 
 const LandingPage = () => {
+  const { scrollY } = useScroll();
+  const opacity = useTransform(scrollY, [0, 200], [1, 0]);
+  const scale = useTransform(scrollY, [0, 200], [1, 0.95]);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -30,37 +36,78 @@ const LandingPage = () => {
     },
   };
 
+  const navbarVariants = {
+    hidden: { y: -100 },
+    visible: {
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+      },
+    },
+  };
+
   return (
-    <div className="bg-gradient-to-b from-white to-gray-50 min-h-screen">
+    <div className="bg-gradient-to-b from-gray-50 via-white to-blue-50 min-h-screen">
       {/* Navbar */}
-      <nav className="fixed w-full bg-white/80 backdrop-blur-md z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+      <motion.nav
+        initial="hidden"
+        animate="visible"
+        variants={navbarVariants}
+        className="fixed w-full bg-white/80 backdrop-blur-md z-50 shadow-lg"
+      >
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+          <motion.div
+            className="flex items-center space-x-3"
+            whileHover={{ scale: 1.05 }}
+          >
             <GraduationCap className="w-8 h-8 text-blue-600" />
-            <span className="text-xl font-bold text-gray-800">
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
               Global Investor Summit
             </span>
-          </div>
+          </motion.div>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* Hero Section */}
-      <section className="relative pt-24 pb-16 px-4 overflow-hidden">
+      <motion.section
+        style={{ opacity, scale }}
+        className="relative pt-32 pb-20 px-4 overflow-hidden"
+      >
         <div className="container mx-auto text-center max-w-4xl relative">
-          <div className="space-y-6">
-            <h1 className="text-6xl font-bold text-gray-900 leading-tight">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-8"
+          >
+            <h1 className="text-7xl font-bold text-gray-900 leading-tight">
               Empower the Future:
-              <span className="block bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+              <motion.span
+                initial={{ backgroundPosition: "200% 0" }}
+                animate={{ backgroundPosition: "0 0" }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                }}
+                className="block bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent bg-[size:200%]"
+              >
                 Adopt a Student
-              </span>
+              </motion.span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed"
+            >
               To adopt a student is to embrace their journey, foster their
               talents, and ignite their dreams.
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Existing Course Cards Section */}
       <section className="p-4 lg:p-6">
@@ -139,78 +186,180 @@ const LandingPage = () => {
         </motion.div>
       </section>
 
-      {/* Investment Steps */}
-      <section className="py-16 px-4 bg-white">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Investment Guide
-          </h2>
-          <div className="max-w-3xl mx-auto">
+      {/* Enhanced Investment Steps */}
+      <section className="py-24 px-4 bg-gradient-to-br from-gray-900 to-blue-900 relative overflow-hidden">
+        {/* Animated background blobs */}
+        <div className="absolute inset-0">
+          <motion.div
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.2, 0.3],
+            }}
+            transition={{ duration: 8, repeat: Infinity }}
+            className="absolute -top-48 -right-48 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.2, 0.3, 0.2],
+            }}
+            transition={{ duration: 8, repeat: Infinity, delay: 2 }}
+            className="absolute -bottom-48 -left-48 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"
+          />
+        </div>
+
+        <div className="container mx-auto relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <span className="bg-blue-500/10 text-blue-300 px-4 py-2 rounded-full text-sm font-medium inline-block mb-4">
+              Investment Process
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Your Path to Educational Investment
+            </h2>
+            <p className="text-blue-100/80 max-w-2xl mx-auto text-lg">
+              Follow our streamlined process to make impactful investments in
+              education
+            </p>
+          </motion.div>
+
+          <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
             {[
               {
                 icon: <BookOpen className="w-6 h-6" />,
-                title: "1. Select the Course",
-                description: "Choose from B.Tech, ITI, or Diploma programs",
+                title: "Select Your Course",
+                description:
+                  "Choose from our curated selection of B.Tech, ITI, or Diploma programs",
+                color: "from-blue-400 to-blue-600",
               },
               {
                 icon: <MapPin className="w-6 h-6" />,
-                title: "2. Choose a Region",
-                description: "Select your preferred location (e.g., Jabalpur)",
+                title: "Choose Region",
+                description:
+                  "Pick your preferred location across Madhya Pradesh",
+                color: "from-purple-400 to-purple-600",
               },
               {
                 icon: <Users className="w-6 h-6" />,
-                title: "3. Pick the Number of Seats & Branch",
-                description:
-                  "Specify seats and choose specialization (e.g., CSE/AI)",
+                title: "Configure Investment",
+                description: "Specify seats and select your preferred branches",
+                color: "from-cyan-400 to-cyan-600",
               },
               {
                 icon: <Lock className="w-6 h-6" />,
-                title: "5. Lock in for Confirmation",
-                description: "Confirm your investment choices",
+                title: "Secure Your Investment",
+                description:
+                  "Complete the process with our secure confirmation system",
+                color: "from-emerald-400 to-emerald-600",
               },
             ].map((step, index) => (
-              <div key={index} className="flex items-start mb-12 group">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                  {step.icon}
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.2 }}
+                whileHover={{ scale: 1.02 }}
+                className="relative bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 group"
+              >
+                <div className="flex items-start space-x-4">
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${step.color} shadow-lg`}
+                  >
+                    {step.icon}
+                  </motion.div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-white mb-2">
+                      {step.title}
+                    </h3>
+                    <p className="text-blue-100/70">{step.description}</p>
+                  </div>
                 </div>
-                <div className="ml-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {step.title}
-                  </h3>
-                  <p className="text-gray-600">{step.description}</p>
-                </div>
-              </div>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  animate={{
+                    x: ["100%", "-100%"],
+                  }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 2,
+                  }}
+                />
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 px-4 bg-blue-600">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">
-            Ready to Make a Difference?
-          </h2>
-          <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join us in shaping the future of education in Madhya Pradesh. Your
-            investment can change lives.
-          </p>
-          <button className="bg-white text-blue-600 px-8 py-3 rounded-full text-lg font-semibold hover:bg-gray-100 transition-colors">
-            Start Investing Now
-          </button>
-        </div>
+      {/* Enhanced CTA Section */}
+      <section className="py-24 px-4 bg-white relative overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="container mx-auto relative"
+        >
+          <div className="max-w-4xl mx-auto bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl p-12 text-center relative overflow-hidden">
+            <motion.div
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.2, 0.3],
+              }}
+              transition={{ duration: 8, repeat: Infinity }}
+              className="absolute inset-0 bg-[url('data:image/svg+xml,...')] opacity-10"
+            />
+
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">
+              Ready to Shape the Future?
+            </h2>
+            <p className="text-blue-100 mb-10 max-w-2xl mx-auto text-lg">
+              Join us in transforming education in Madhya Pradesh. Your
+              investment today creates tomorrow&apos;s leaders.
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-white text-blue-600 px-10 py-4 rounded-full text-lg font-semibold hover:bg-gray-50 transition-all shadow-xl flex items-center mx-auto space-x-3 group"
+            >
+              <span>Begin Your Investment Journey</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </motion.button>
+          </div>
+        </motion.div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-12 px-4">
-        <div className="container mx-auto">
-          <div className="flex items-center justify-center mb-8">
-            <GraduationCap className="w-8 h-8 text-white" />
+      {/* Enhanced Footer */}
+      <footer className="bg-gray-900 text-gray-400 py-16 px-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="container mx-auto"
+        >
+          <div className="flex flex-col items-center space-y-6">
+            <motion.div
+              whileHover={{ scale: 1.1, rotate: 360 }}
+              className="p-4 bg-blue-600/10 rounded-full"
+            >
+              <Globe className="w-10 h-10 text-blue-400" />
+            </motion.div>
+            <h3 className="text-2xl font-bold text-white">
+              Global Investor Summit
+            </h3>
+            <p className="text-gray-400 text-center max-w-md">
+              Transforming education through strategic investments
+            </p>
+            <div className="h-px w-24 bg-gray-800 my-6"></div>
+            <p className="text-sm text-gray-500">
+              © 2025 Global Investor Summit. All rights reserved.
+            </p>
           </div>
-          <p className="text-center">
-            © 2025 Global Investor Summit. All rights reserved.
-          </p>
-        </div>
+        </motion.div>
       </footer>
     </div>
   );

@@ -128,7 +128,7 @@ const CourseStep = ({ course, seats, onSeatChange, onSelect, isSelected }) => (
           </div>
           <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-medium whitespace-nowrap">
             {course.total_seats - course.left_seats + parseInt(seats || 0)}/
-            {course.total_seats}
+            {course.total_seats} {"Seats adopted"}
           </span>
         </motion.div>
       )}
@@ -232,8 +232,10 @@ const RegionCourseList = () => {
     return courses
       .filter(
         (course) =>
-          (course.city?.toLowerCase() === city?.toLowerCase()) &&
-          (courseType ? course.course_name.toLowerCase() === courseType.toLowerCase() : true)
+          course.city?.toLowerCase() === city?.toLowerCase() &&
+          (courseType
+            ? course.course_name.toLowerCase() === courseType.toLowerCase()
+            : true)
       )
       .sort((a, b) => {
         if (courseType) {
@@ -253,7 +255,7 @@ const RegionCourseList = () => {
     if (!Array.isArray(courses)) return {};
 
     return cityCourses.reduce((acc, course) => {
-      console.log('redunce',course);
+      console.log("redunce", course);
       const institute = course.institute_name || "Other Institutes"; // Using institute_name instead of institute
       if (!acc[institute]) {
         acc[institute] = [];

@@ -96,13 +96,16 @@ const UnsavedChangesDialog = ({ isOpen, onConfirm, onCancel, nextPath }) => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
                   onClick={onConfirm}
-                  className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white py-3 px-6 rounded-lg
-                    hover:from-yellow-600 hover:to-yellow-700 transition-all duration-200 
-                    shadow-lg shadow-yellow-500/25 font-medium"
+                  className={`flex-1 bg-gradient-to-r ${
+                    isPaymentNavigation
+                      ? "from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-green-500/25"
+                      : "from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 shadow-yellow-500/25"
+                  } text-white py-3 px-6 rounded-lg
+                    transition-all duration-200 shadow-lg font-medium`}
                 >
                   {isPaymentNavigation
                     ? "Confirm & Proceed"
-                    : "Keep & Continue"}
+                    : "Discard Changes"}
                 </motion.button>
 
                 <motion.button

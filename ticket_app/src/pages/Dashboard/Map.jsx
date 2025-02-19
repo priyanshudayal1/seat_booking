@@ -55,6 +55,12 @@ const StateMap = ({
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // MP bounds approximation
+  const mpBounds = [
+    [21.6, 74.0], // Southwest corner
+    [26.87, 82.8], // Northeast corner
+  ];
+
   // Course-specific color configurations
   const courseColors = {
     "M.Tech": {
@@ -227,14 +233,19 @@ const StateMap = ({
   return (
     <div className="w-full h-[700px] rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
       <MapContainer
-        center={[23.2599, 77.4126]}
-        zoom={6}
+        center={[23.75, 77.5]} // Centered on MP
+        zoom={7}
         className="h-full w-full"
-        zoomControl={false}
+        zoomControl={true}
+        maxBounds={mpBounds}
+        minZoom={6.5}
+        maxZoom={9}
+        bounds={mpBounds}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           className="map-tiles"
+          bounds={mpBounds}
         />
         {geoData && (
           <GeoJSON
