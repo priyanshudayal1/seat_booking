@@ -398,7 +398,37 @@ def verify_otp(request):
         print('sent_otp ', sent_otp)
         if billing.otp != sent_otp:
             return JsonResponse({"message": "Invalid OTP"}, status=400)
-        
+
+        # Deduct seats for each selected course
+        selected_courses = billing.selected_courses
+        print('selected_courses ', selected_courses)
+        if selected_courses:
+            if isinstance(selected_courses, dict):
+                for course_id, selection in selected_courses.items():
+                    try:
+                        course = Course.objects.get(pk=course_id)
+                        required_seats = int(selection.get('selectedSeats', 0))
+                        if course.left_seats >= required_seats:
+                            course.left_seats -= required_seats
+                            course.save()
+                        else:
+                            return JsonResponse({"message": f"Not enough seats available for {course.course_name}"}, status=400)
+                    except Course.DoesNotExist:
+                        return JsonResponse({"message": "Selected course does not exist"}, status=404)
+            else:
+                for selection in selected_courses:
+                    try:
+                        course_id = selection.get('course_id') or selection.get('id')
+                        course = Course.objects.get(pk=course_id)
+                        required_seats = int(selection.get('selectedSeats') or selection.get('seats', 0))
+                        if course.left_seats >= required_seats:
+                            course.left_seats -= required_seats
+                            course.save()
+                        else:
+                            return JsonResponse({"message": f"Not enough seats available for {course.course_name}"}, status=400)
+                    except Course.DoesNotExist:
+                        return JsonResponse({"message": "Selected course does not exist"}, status=404)
+
         billing.is_verified = True
         billing.save()
         return JsonResponse({
