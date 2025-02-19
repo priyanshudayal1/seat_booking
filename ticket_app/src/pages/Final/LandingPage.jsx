@@ -1,7 +1,15 @@
-import React from 'react';
+import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { GraduationCap, MapPin, Users, BookOpen, Lock, Wrench, School } from "lucide-react";
+import {
+  GraduationCap,
+  MapPin,
+  Users,
+  BookOpen,
+  Lock,
+  Wrench,
+  School,
+} from "lucide-react";
 
 const LandingPage = () => {
   const containerVariants = {
@@ -29,11 +37,10 @@ const LandingPage = () => {
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <GraduationCap className="w-8 h-8 text-blue-600" />
-            <span className="text-xl font-bold text-gray-800">Global Investor Summit</span>
+            <span className="text-xl font-bold text-gray-800">
+              Global Investor Summit
+            </span>
           </div>
-          <button className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-colors">
-            Contact Us
-          </button>
         </div>
       </nav>
 
@@ -48,7 +55,8 @@ const LandingPage = () => {
               </span>
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              To adopt a student is to embrace their journey, foster their talents, and ignite their dreams.
+              To adopt a student is to embrace their journey, foster their
+              talents, and ignite their dreams.
             </p>
           </div>
         </div>
@@ -111,7 +119,7 @@ const LandingPage = () => {
                       className={`w-12 h-12 ${colorConfig.bg} rounded-xl flex items-center justify-center mb-4 ${colorConfig.hover} transition-colors duration-300`}
                     >
                       {React.createElement(course.icon, {
-                        className: `h-6 w-6 ${colorConfig.icon} group-hover:text-white`
+                        className: `h-6 w-6 ${colorConfig.icon} group-hover:text-white`,
                       })}
                     </div>
                     <h3 className="font-semibold text-xl mb-2 text-gray-800">
@@ -134,28 +142,31 @@ const LandingPage = () => {
       {/* Investment Steps */}
       <section className="py-16 px-4 bg-white">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Investment Guide</h2>
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+            Investment Guide
+          </h2>
           <div className="max-w-3xl mx-auto">
             {[
               {
                 icon: <BookOpen className="w-6 h-6" />,
-                title: '1. Select the Course',
-                description: 'Choose from B.Tech, ITI, or Diploma programs',
+                title: "1. Select the Course",
+                description: "Choose from B.Tech, ITI, or Diploma programs",
               },
               {
                 icon: <MapPin className="w-6 h-6" />,
-                title: '2. Choose a Region',
-                description: 'Select your preferred location (e.g., Jabalpur)',
+                title: "2. Choose a Region",
+                description: "Select your preferred location (e.g., Jabalpur)",
               },
               {
                 icon: <Users className="w-6 h-6" />,
-                title: '3. Pick the Number of Seats & Branch',
-                description: 'Specify seats and choose specialization (e.g., CSE/AI)',
+                title: "3. Pick the Number of Seats & Branch",
+                description:
+                  "Specify seats and choose specialization (e.g., CSE/AI)",
               },
               {
                 icon: <Lock className="w-6 h-6" />,
-                title: '5. Lock in for Confirmation',
-                description: 'Confirm your investment choices',
+                title: "5. Lock in for Confirmation",
+                description: "Confirm your investment choices",
               },
             ].map((step, index) => (
               <div key={index} className="flex items-start mb-12 group">
@@ -163,7 +174,9 @@ const LandingPage = () => {
                   {step.icon}
                 </div>
                 <div className="ml-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{step.title}</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {step.title}
+                  </h3>
                   <p className="text-gray-600">{step.description}</p>
                 </div>
               </div>
@@ -175,9 +188,12 @@ const LandingPage = () => {
       {/* CTA Section */}
       <section className="py-16 px-4 bg-blue-600">
         <div className="container mx-auto text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">Ready to Make a Difference?</h2>
+          <h2 className="text-3xl font-bold text-white mb-6">
+            Ready to Make a Difference?
+          </h2>
           <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join us in shaping the future of education in Madhya Pradesh. Your investment can change lives.
+            Join us in shaping the future of education in Madhya Pradesh. Your
+            investment can change lives.
           </p>
           <button className="bg-white text-blue-600 px-8 py-3 rounded-full text-lg font-semibold hover:bg-gray-100 transition-colors">
             Start Investing Now

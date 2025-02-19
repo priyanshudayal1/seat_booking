@@ -240,164 +240,202 @@ const CourseTable = ({ selections }) => (
   </div>
 );
 
-// PDF Document Styles
+// Enhanced PDF Document Styles
 const pdfStyles = StyleSheet.create({
   page: {
     padding: 40,
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
+    fontFamily: 'Helvetica',
   },
   header: {
-    fontSize: 24,
-    marginBottom: 24,
-    color: "#111827", // text-gray-900
-    textAlign: "center",
-    fontWeight: "bold",
+    marginBottom: 30,
+    borderBottom: 2,
+    borderBottomColor: '#e5e7eb',
+    paddingBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 28,
+    color: '#1f2937',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
   },
   section: {
-    marginBottom: 24,
-    backgroundColor: "#ffffff",
+    marginBottom: 30,
+    backgroundColor: '#ffffff',
     padding: 20,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e5e7eb", // border-gray-200
+    borderColor: '#e5e7eb',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 16,
-    color: "#1f2937", // text-gray-800
-    fontWeight: "bold",
-    display: "flex",
-    alignItems: "center",
+    color: '#1f2937',
+    fontWeight: 'bold',
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderColor: "#e5e7eb", // border-gray-200
+    borderColor: '#e5e7eb',
   },
-  row: {
-    flexDirection: "row",
+  grid: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -10,
+  },
+  gridItem: {
+    width: '50%',
+    paddingHorizontal: 10,
+    marginBottom: 12,
+  },
+  fieldGroup: {
     marginBottom: 8,
-    padding: 4,
   },
-  label: {
-    width: "30%",
-    color: "#4b5563", // text-gray-600
+  fieldLabel: {
     fontSize: 11,
-    fontWeight: "medium",
+    color: '#6b7280',
+    marginBottom: 4,
+    fontWeight: 'medium',
   },
-  value: {
-    flex: 1,
-    color: "#111827", // text-gray-900
-    fontSize: 11,
+  fieldValue: {
+    fontSize: 13,
+    color: '#111827',
+    fontWeight: 'medium',
   },
   table: {
+    width: '100%',
     marginTop: 16,
-    borderWidth: 1,
-    borderColor: "#e5e7eb", // border-gray-200
-    borderRadius: 8,
-    overflow: "hidden",
   },
   tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#f9fafb", // bg-gray-50
+    flexDirection: 'row',
+    backgroundColor: '#f9fafb',
+    borderBottomWidth: 1,
+    borderColor: '#e5e7eb',
     padding: 12,
   },
-  tableHeaderText: {
-    color: "#6b7280", // text-gray-500
-    fontSize: 10,
-    fontWeight: "bold",
-    textTransform: "uppercase",
+  tableHeaderCell: {
+    color: '#6b7280',
+    fontSize: 11,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   tableRow: {
-    flexDirection: "row",
-    borderTopWidth: 1,
-    borderColor: "#e5e7eb", // border-gray-200
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderColor: '#e5e7eb',
     padding: 12,
-    backgroundColor: "#ffffff",
   },
-  col1: {
-    flex: 2,
-    fontSize: 11,
-    color: "#111827", // text-gray-900
+  tableCell: {
+    fontSize: 12,
+    color: '#374151',
   },
-  col2: {
-    flex: 1,
-    fontSize: 11,
-    color: "#6b7280", // text-gray-500
-  },
-  col3: {
-    flex: 1,
-    fontSize: 11,
-    color: "#111827", // text-gray-900
-  },
-  col4: {
-    flex: 1,
-    textAlign: "right",
-    fontSize: 11,
-    color: "#2563eb", // text-blue-600
-  },
+  col1: { width: '35%' },
+  col2: { width: '25%' },
+  col3: { width: '20%' },
+  col4: { width: '20%', textAlign: 'right' },
   totalRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
     padding: 16,
-    backgroundColor: "#f9fafb", // bg-gray-50
+    backgroundColor: '#f9fafb',
     borderTopWidth: 1,
-    borderColor: "#e5e7eb", // border-gray-200
+    borderColor: '#e5e7eb',
   },
   totalLabel: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#111827", // text-gray-900
-    marginRight: 8,
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginRight: 12,
   },
   totalValue: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#2563eb", // text-blue-600
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2563eb',
   },
   footer: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 30,
     left: 40,
     right: 40,
-    textAlign: "center",
-    color: "#6b7280", // text-gray-500
+    textAlign: 'center',
+    color: '#6b7280',
     fontSize: 10,
-    paddingTop: 12,
+    paddingTop: 20,
     borderTopWidth: 1,
-    borderColor: "#e5e7eb", // border-gray-200
+    borderColor: '#e5e7eb',
+  },
+  qrCode: {
+    position: 'absolute',
+    top: 40,
+    right: 40,
+    width: 64,
+    height: 64,
+  },
+  metaInfo: {
+    position: 'absolute',
+    bottom: 80,
+    left: 40,
+    right: 40,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    color: '#9ca3af',
+    fontSize: 9,
   },
 });
 
-// PDF Document Component
+// Enhanced PDF Document Component
 const BillingSummary = ({ userData, courses }) => (
   <Document>
     <Page size="A4" style={pdfStyles.page}>
-      <Text style={pdfStyles.header}>Adoption Summary</Text>
+      <View style={pdfStyles.header}>
+        <Text style={pdfStyles.headerTitle}>Adoption Summary</Text>
+        <Text style={pdfStyles.headerSubtitle}>Thank you for contributing to education</Text>
+      </View>
 
       <View style={pdfStyles.section}>
-        <Text style={pdfStyles.sectionTitle}>Personal Details</Text>
-        <View style={pdfStyles.row}>
-          <Text style={pdfStyles.label}>Full Name</Text>
-          <Text style={pdfStyles.value}>{userData.fullName}</Text>
-        </View>
-        <View style={pdfStyles.row}>
-          <Text style={pdfStyles.label}>Designation</Text>
-          <Text style={pdfStyles.value}>{userData.designation}</Text>
-        </View>
-        <View style={pdfStyles.row}>
-          <Text style={pdfStyles.label}>Company Name</Text>
-          <Text style={pdfStyles.value}>{userData.company}</Text>
-        </View>
-        <View style={pdfStyles.row}>
-          <Text style={pdfStyles.label}>Industry</Text>
-          <Text style={pdfStyles.value}>{userData.industry}</Text>
-        </View>
-        <View style={pdfStyles.row}>
-          <Text style={pdfStyles.label}>Email Address</Text>
-          <Text style={pdfStyles.value}>{userData.email}</Text>
-        </View>
-        <View style={pdfStyles.row}>
-          <Text style={pdfStyles.label}>Phone Number</Text>
-          <Text style={pdfStyles.value}>{userData.phone}</Text>
+        <Text style={pdfStyles.sectionTitle}>Personal Information</Text>
+        <View style={pdfStyles.grid}>
+          <View style={pdfStyles.gridItem}>
+            <View style={pdfStyles.fieldGroup}>
+              <Text style={pdfStyles.fieldLabel}>Full Name</Text>
+              <Text style={pdfStyles.fieldValue}>{userData.fullName}</Text>
+            </View>
+          </View>
+          <View style={pdfStyles.gridItem}>
+            <View style={pdfStyles.fieldGroup}>
+              <Text style={pdfStyles.fieldLabel}>Designation</Text>
+              <Text style={pdfStyles.fieldValue}>{userData.designation}</Text>
+            </View>
+          </View>
+          <View style={pdfStyles.gridItem}>
+            <View style={pdfStyles.fieldGroup}>
+              <Text style={pdfStyles.fieldLabel}>Company</Text>
+              <Text style={pdfStyles.fieldValue}>{userData.company}</Text>
+            </View>
+          </View>
+          <View style={pdfStyles.gridItem}>
+            <View style={pdfStyles.fieldGroup}>
+              <Text style={pdfStyles.fieldLabel}>Industry</Text>
+              <Text style={pdfStyles.fieldValue}>{userData.industry}</Text>
+            </View>
+          </View>
+          <View style={pdfStyles.gridItem}>
+            <View style={pdfStyles.fieldGroup}>
+              <Text style={pdfStyles.fieldLabel}>Email</Text>
+              <Text style={pdfStyles.fieldValue}>{userData.email}</Text>
+            </View>
+          </View>
+          <View style={pdfStyles.gridItem}>
+            <View style={pdfStyles.fieldGroup}>
+              <Text style={pdfStyles.fieldLabel}>Phone</Text>
+              <Text style={pdfStyles.fieldValue}>{userData.phone}</Text>
+            </View>
+          </View>
         </View>
       </View>
 
@@ -405,27 +443,17 @@ const BillingSummary = ({ userData, courses }) => (
         <Text style={pdfStyles.sectionTitle}>Adoption Details</Text>
         <View style={pdfStyles.table}>
           <View style={pdfStyles.tableHeader}>
-            <Text style={[pdfStyles.col1, pdfStyles.tableHeaderText]}>
-              Course
-            </Text>
-            <Text style={[pdfStyles.col2, pdfStyles.tableHeaderText]}>
-              Branch
-            </Text>
-            <Text style={[pdfStyles.col3, pdfStyles.tableHeaderText]}>
-              Seats
-            </Text>
-            <Text style={[pdfStyles.col4, pdfStyles.tableHeaderText]}>
-              Amount
-            </Text>
+            <Text style={[pdfStyles.tableHeaderCell, pdfStyles.col1]}>Course</Text>
+            <Text style={[pdfStyles.tableHeaderCell, pdfStyles.col2]}>Branch</Text>
+            <Text style={[pdfStyles.tableHeaderCell, pdfStyles.col3]}>Seats</Text>
+            <Text style={[pdfStyles.tableHeaderCell, pdfStyles.col4]}>Amount</Text>
           </View>
           {Object.values(courses).map((course, index) => (
             <View key={index} style={pdfStyles.tableRow}>
-              <Text style={pdfStyles.col1}>{course.courseName}</Text>
-              <Text style={pdfStyles.col2}>{course.branch}</Text>
-              <Text style={pdfStyles.col3}>{course.selectedSeats}</Text>
-              <Text style={pdfStyles.col4}>
-                {formatPrice(course.totalPrice)}
-              </Text>
+              <Text style={[pdfStyles.tableCell, pdfStyles.col1]}>{course.courseName}</Text>
+              <Text style={[pdfStyles.tableCell, pdfStyles.col2]}>{course.branch}</Text>
+              <Text style={[pdfStyles.tableCell, pdfStyles.col3]}>{course.selectedSeats}</Text>
+              <Text style={[pdfStyles.tableCell, pdfStyles.col4]}>{formatPrice(course.totalPrice)}</Text>
             </View>
           ))}
           <View style={pdfStyles.totalRow}>
@@ -433,8 +461,7 @@ const BillingSummary = ({ userData, courses }) => (
             <Text style={pdfStyles.totalValue}>
               {formatPrice(
                 Object.values(courses).reduce(
-                  (total, course) =>
-                    total + (parseFloat(course.totalPrice) || 0),
+                  (total, course) => total + (parseFloat(course.totalPrice) || 0),
                   0
                 )
               )}
@@ -443,9 +470,13 @@ const BillingSummary = ({ userData, courses }) => (
         </View>
       </View>
 
+      <View style={pdfStyles.metaInfo}>
+        <Text>Generated on: {new Date().toLocaleDateString()}</Text>
+        <Text>Document ID: {Math.random().toString(36).substr(2, 9).toUpperCase()}</Text>
+      </View>
+
       <Text style={pdfStyles.footer}>
-        Thank you for your contribution to education. This document serves as
-        your official adoption confirmation.
+        This document serves as your official adoption confirmation. For any queries, please contact support.
       </Text>
     </Page>
   </Document>

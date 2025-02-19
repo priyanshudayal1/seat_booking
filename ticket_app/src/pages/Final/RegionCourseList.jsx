@@ -232,8 +232,8 @@ const RegionCourseList = () => {
     return courses
       .filter(
         (course) =>
-          course.city === city &&
-          (courseType ? course.course_name === courseType : true)
+          (course.city?.toLowerCase() === city?.toLowerCase()) &&
+          (courseType ? course.course_name.toLowerCase() === courseType.toLowerCase() : true)
       )
       .sort((a, b) => {
         if (courseType) {
@@ -248,9 +248,12 @@ const RegionCourseList = () => {
   }, [courses, city, courseType]);
 
   const coursesByInstitute = useMemo(() => {
+    console.log(courses);
+    console.log(cityCourses);
     if (!Array.isArray(courses)) return {};
 
     return cityCourses.reduce((acc, course) => {
+      console.log('redunce',course);
       const institute = course.institute_name || "Other Institutes"; // Using institute_name instead of institute
       if (!acc[institute]) {
         acc[institute] = [];
