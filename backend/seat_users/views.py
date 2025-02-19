@@ -345,39 +345,68 @@ def get_cities_with_seats(request):
     except Exception as e:
         return JsonResponse({"message": str(e)}, status=500)
 
+import csv
+
 @csrf_exempt
 def populate_initial_data(request):
     try:
-        json_file_path = os.path.join(os.path.dirname(__file__), 'output.json')
-        # Define price mapping
+        csv_file_path = os.path.join(os.path.dirname(__file__), 'final.csv')
+        
+        # Mapping for course name conversion from "Types of Institute"
+        institute_conversion = {
+            'Engineering': 'B.Tech',
+            'ITI': 'ITI',
+            'Diploma': 'Diploma'
+        }
+        
+        # Price mapping (if needed)
         price_mapping = {
             'B.Tech': 250000,  # 2.5 lakh
             'Diploma': 150000,  # 1.5 lakh
-            'ITI': 100000      # 1 lakh
+            'ITI': 100000       # 1 lakh
         }
-    
-        with open(json_file_path, 'r') as file:
-            data = json.load(file)
-            for course in data:
-                # Print courses where total_seats is None
-                if course.get('total_seats') is None:
-                    print(f"Course with no seats: {course['course_name']} - {course['branch']} - {course['city']}")
+        
+        with open(csv_file_path, 'r', newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                print(f"Processing record: {row}")
+                record_type = row.get('Type ', '').strip()
+                # Filter only records with Type as Government or Govt. Aided
+                if record_type not in ['Government', 'Govt. Aided']:
+                    print(f"Skipping record with type: {record_type}")
                     continue
+                print(f"Processing record with type: {record_type}")
+                seats_val = row.get('Seats', '').strip()
+                if not seats_val:
+                    print(f"Missing seats for institute: {row.get('Institute Name', '')}")
+                    continue
+                try:
+                    total_seats = int(seats_val)
+                except ValueError:
+                    print(f"Invalid seats value: {seats_val}")
+                    continue
+
+                types_inst = row.get('Types of Institute', '').strip()
+                course_name = institute_conversion.get(types_inst, types_inst)
                 
-                print('course:', course)
-                # Fix: Use 'institute_type ' with space to match JSON key
+                city = row.get('Distrcit ', '').strip()
+                institute_name = row.get('Institute Name', '').strip()
+                branch = row.get('Trade/ Branch Name', '').strip()
+                left_seats = total_seats  # locked_seats is 0
+                
                 new_course = Course(
-                    course_name=course['course_name'],
-                    branch=course['branch'],
-                    city=course['city'],
-                    total_seats=course['total_seats'],
-                    left_seats=course['total_seats'],
-                    price_per_seat=price_mapping.get(course['course_name'], 0),
-                    institute_type=course['institute_type '].strip()  # Added strip() to remove whitespace
+                    course_name=course_name,
+                    branch=branch,
+                    city=city,
+                    institute_name=institute_name,
+                    total_seats=total_seats,
+                    locked_seats=0,
+                    left_seats=left_seats,
+                    price_per_seat=price_mapping.get(course_name, 0),
+                    institute_type=record_type  # Type column value
                 )
                 new_course.save()
         return JsonResponse({"message": "Data populated successfully"}, status=200)
     except Exception as e:
         print(f"Error occurred: {str(e)}")
-        print(f"Error details: {type(e).__name__}")
         return JsonResponse({"message": f"Error: {str(e)}", "error_type": type(e).__name__}, status=500)

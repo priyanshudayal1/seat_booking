@@ -46,9 +46,9 @@ class Course(models.Model):
     locked_seats = models.IntegerField(default=0)
     left_seats = models.IntegerField()
     price_per_seat = models.DecimalField(max_digits=10, decimal_places=2)
-    institute_name = models.CharField(max_length=255, default='JEC Jabalpur')
-    city = models.CharField(max_length=255, default='Jabalpur')
-    institute_type = models.CharField(max_length=255, default='Engineering College')
+    institute_name = models.CharField(max_length=255, null=True,blank=True)
+    city = models.CharField(max_length=255, null=True,blank=True)
+    institute_type = models.CharField(max_length=255, null=True,blank=True)
     def to_dict(self):
         return {
             'id': self.id,
@@ -59,7 +59,8 @@ class Course(models.Model):
             'left_seats': self.left_seats,
             'price_per_seat': str(self.price_per_seat),
             'institute_name': self.institute_name,
-            'city': self.city
+            'city': self.city,
+            'institute_type': self.institute_type
         }
 
     def update_seats(self):

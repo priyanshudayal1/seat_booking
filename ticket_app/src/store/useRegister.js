@@ -6,6 +6,13 @@ const useRegisterStore = create((set) => ({
   loading: false,
   error: null,
   success: false,
+  otpSent: false,
+  otpVerified: false,
+  userDetails: null,
+
+  setUserDetails: (details) => {
+    set({ userDetails: details });
+  },
 
   register: async (userData) => {
     set({ loading: true, error: null, success: false });
@@ -31,8 +38,48 @@ const useRegisterStore = create((set) => ({
     }
   },
 
+  sendOTP: async (email) => {
+    set({ loading: true, error: null });
+    try {
+      await axios.post(`${API_URL}/user/generate-otp`, { email });
+      set({ loading: false, otpSent: true });
+      return true;
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || 'Failed to send OTP',
+        loading: false
+      });
+      return false;
+    }
+  },
+
+  verifyOTP: async (otp) => {
+    set({ loading: true, error: null });
+    try {
+      await axios.post(`${API_URL}/user/verify-otp`, { 
+        otp,
+        email: useRegisterStore.getState().userDetails?.email
+      });
+      set({ loading: false, otpVerified: true });
+      return true;
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || 'Failed to verify OTP',
+        loading: false
+      });
+      return false;
+    }
+  },
+
   resetState: () => {
-    set({ loading: false, error: null, success: false });
+    set({ 
+      loading: false, 
+      error: null, 
+      success: false,
+      otpSent: false,
+      otpVerified: false,
+      userDetails: null
+    });
   }
 }));
 

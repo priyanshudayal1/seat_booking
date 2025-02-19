@@ -144,9 +144,9 @@ const OTPInput = ({ value, onChange, disabled }) => {
   const inputRefs = useRef([...Array(6)].map(() => React.createRef()));
 
   const handleChange = (index, inputValue) => {
-    const newValue = value.split('');
+    const newValue = value.split("");
     newValue[index] = inputValue;
-    const combinedValue = newValue.join('');
+    const combinedValue = newValue.join("");
     onChange(combinedValue);
 
     // Move to next input if value is entered
@@ -157,16 +157,19 @@ const OTPInput = ({ value, onChange, disabled }) => {
 
   const handleKeyDown = (index, e) => {
     // Move to previous input on backspace if current input is empty
-    if (e.key === 'Backspace' && !value[index] && index > 0) {
+    if (e.key === "Backspace" && !value[index] && index > 0) {
       inputRefs.current[index - 1].current?.focus();
     }
   };
 
   const handlePaste = (e) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    const pastedData = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
     onChange(pastedData);
-    
+
     // Focus the next empty input after paste
     const nextEmptyIndex = pastedData.length < 6 ? pastedData.length : 5;
     inputRefs.current[nextEmptyIndex].current?.focus();
@@ -180,8 +183,10 @@ const OTPInput = ({ value, onChange, disabled }) => {
           ref={inputRefs.current[index]}
           type="text"
           maxLength={1}
-          value={value[index] || ''}
-          onChange={(e) => handleChange(index, e.target.value.replace(/\D/g, ''))}
+          value={value[index] || ""}
+          onChange={(e) =>
+            handleChange(index, e.target.value.replace(/\D/g, ""))
+          }
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={index === 0 ? handlePaste : undefined}
           disabled={disabled}
@@ -284,11 +289,7 @@ const OTPVerificationSection = ({ onVerified, loading, setLoading }) => {
             Enter the OTP sent to {phoneNumber || "your registered number"}
           </p>
           <div className="flex flex-col items-center space-y-4">
-            <OTPInput 
-              value={otp}
-              onChange={setOtp}
-              disabled={loading}
-            />
+            <OTPInput value={otp} onChange={setOtp} disabled={loading} />
             <button
               onClick={handleVerifyOTP}
               disabled={loading || otp.length !== 6}
@@ -325,7 +326,7 @@ const LockSeats = () => {
   const [LockSeatsMethod, setLockSeatsMethod] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  
+
   const selectedCourses = useCourseSelection((state) => state.selectedCourses);
   const reset = useCourseSelection((state) => state.reset);
   const userId = useLoginStore((state) => state.userId);
@@ -334,7 +335,7 @@ const LockSeats = () => {
     // Redirect if no courses are selected
     if (Object.keys(selectedCourses).length === 0) {
       toast.error("Please select courses before proceeding to LockSeats");
-      navigate("/dashboard/new-course-selection");
+      navigate("/cart");
     }
   }, [selectedCourses, navigate]);
 
@@ -361,7 +362,7 @@ const LockSeats = () => {
 
   const handleLockSeats = async () => {
     if (!LockSeatsMethod) {
-      toast.error("Please select a LockSeats method");
+      toast.error("Please select a Lock Seats method");
       return;
     }
 
@@ -395,14 +396,14 @@ const LockSeats = () => {
       });
 
       if (LockSeatsResponse.data.transaction_id) {
-        toast.success("LockSeats successful!");
+        toast.success("Lock Seats successful!");
         reset();
-        navigate("/dashboard");
+        navigate("/");
       }
     } catch (error) {
-      console.error("LockSeats error:", error);
+      console.error("Lock Seats error:", error);
       toast.error(
-        error.response?.data?.message || "LockSeats failed. Please try again."
+        error.response?.data?.message || "Lock Seats failed. Please try again."
       );
     } finally {
       setIsProcessing(false);
@@ -410,106 +411,112 @@ const LockSeats = () => {
   };
 
   const handleBack = () => {
-    navigate("/dashboard/new-course-selection");
+    navigate("/cart");
   };
 
   if (Object.keys(selectedCourses).length === 0) {
     return (
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="bg-orange-50 border-l-4 border-orange-400 p-4 rounded flex flex-col space-y-4">
-          <div className="flex items-center">
-            <AlertCircle className="text-orange-400 mr-3" />
-            <p className="text-orange-700">
-              No courses selected. Please select courses before proceeding to
-              LockSeats.
-            </p>
+      <div className="min-h-screen w-full bg-gray-50 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-orange-50 border-l-4 border-orange-400 p-4 rounded flex flex-col space-y-4">
+            <div className="flex items-center">
+              <AlertCircle className="text-orange-400 mr-3" />
+              <p className="text-orange-700">
+                No courses selected. Please select courses before proceeding to
+                LockSeats.
+              </p>
+            </div>
+            <button
+              onClick={handleBack}
+              className="flex items-center text-orange-600 hover:text-orange-700"
+            >
+              <ArrowLeft size={16} className="mr-2" />
+              Back to Course Selection
+            </button>
           </div>
-          <button
-            onClick={handleBack}
-            className="flex items-center text-orange-600 hover:text-orange-700"
-          >
-            <ArrowLeft size={16} className="mr-2" />
-            Back to Course Selection
-          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-3 sm:p-4 lg:p-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-3 sm:p-4 lg:p-8"
-      >
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
-          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-            LockSeats Details
-          </h1>
-          <button
-            onClick={handleBack}
-            className="text-gray-600 hover:text-gray-800 flex items-center text-sm sm:text-base"
-          >
-            <ArrowLeft size={16} className="mr-1" />
-            Back
-          </button>
-        </div>
-
-        <div className="overflow-x-auto -mx-3 sm:-mx-4 lg:mx-0">
-          <div className="inline-block min-w-full align-middle">
-            <CourseTable selections={selectedCourses} />
+    <div className="min-h-screen w-full bg-gray-50">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 lg:p-8"
+        >
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 lg:mb-8 gap-3 sm:gap-4">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+              Lock Seats Details
+            </h1>
+            <button
+              onClick={handleBack}
+              className="text-gray-600 hover:text-gray-800 flex items-center text-sm sm:text-base"
+            >
+              <ArrowLeft size={16} className="mr-1" />
+              Back
+            </button>
           </div>
-        </div>
 
-        <OTPVerificationSection
-          onVerified={() => setIsVerified(true)}
-          loading={isProcessing}
-          setLoading={setIsProcessing}
-        />
+          <div className="space-y-6 sm:space-y-8 lg:space-y-10">
+            <div className="overflow-x-auto -mx-4 sm:-mx-6 lg:mx-0">
+              <div className="inline-block min-w-full align-middle">
+                <CourseTable selections={selectedCourses} />
+              </div>
+            </div>
 
-        <div className="mt-4 sm:mt-6 lg:mt-8">
-          <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
-            Select LockSeats Method
-          </h2>
-          <div
-            className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 ${
-              !isVerified ? "opacity-50 pointer-events-none" : ""
-            }`}
-          >
-            {LockSeatsMethods.map((method) => (
-              <LockSeatsMethodCard
-                key={method.id}
-                {...method}
-                selected={LockSeatsMethod === method.id}
-                onSelect={() => setLockSeatsMethod(method.id)}
-              />
-            ))}
+            <OTPVerificationSection
+              onVerified={() => setIsVerified(true)}
+              loading={isProcessing}
+              setLoading={setIsProcessing}
+            />
+
+            <div>
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">
+                Select Lock Seats Method
+              </h2>
+              <div
+                className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 ${
+                  !isVerified ? "opacity-50 pointer-events-none" : ""
+                }`}
+              >
+                {LockSeatsMethods.map((method) => (
+                  <LockSeatsMethodCard
+                    key={method.id}
+                    {...method}
+                    selected={LockSeatsMethod === method.id}
+                    onSelect={() => setLockSeatsMethod(method.id)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4 sm:pt-6 lg:pt-8 border-t border-gray-100">
+              <button
+                onClick={handleLockSeats}
+                disabled={isProcessing || !LockSeatsMethod || !isVerified}
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
+                  transition-colors font-medium flex items-center justify-center gap-2
+                  disabled:bg-blue-300 disabled:cursor-not-allowed text-base sm:text-lg"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="animate-spin w-5 h-5 sm:w-6 sm:h-6" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Proceed to Pay</span>
+                    <CreditCard className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
-
-        <div className="mt-4 sm:mt-6 lg:mt-8 flex justify-end">
-          <button
-            onClick={handleLockSeats}
-            disabled={isProcessing || !LockSeatsMethod || !isVerified}
-            className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
-              transition-colors font-medium flex items-center justify-center gap-2
-              disabled:bg-blue-300 disabled:cursor-not-allowed text-sm sm:text-base"
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="animate-spin w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Processing...</span>
-              </>
-            ) : (
-              <>
-                <span>Proceed to Pay</span>
-                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
-              </>
-            )}
-          </button>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 };

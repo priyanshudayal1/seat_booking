@@ -21,6 +21,7 @@ import LandingPage from "./pages/Final/LandingPage";
 import SelectRegionWithCourse from "./pages/Final/SelectRegionWithCourse";
 import RegionCourseList from "./pages/Final/RegionCourseList";
 import YourCart from "./pages/Final/YourCart";
+import LockSeats from "./pages/Final/LockSeats";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -35,7 +36,7 @@ const router = createBrowserRouter(
         element={<RegionCourseList />}
       />
       <Route path="/cart" element={<YourCart />} />
-      <Route path="/payment" element={<Payment />} />
+      <Route path="/payment" element={<LockSeats />} />
 
       <Route path="/home" element={<Map />} />
       <Route path="/login" element={<Login />} />

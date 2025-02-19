@@ -18,5 +18,5 @@ urlpatterns = [
     path('cities', views.get_cities_with_seats, name='get_cities_with_seats'),
     path('city/<str:city_name>', views.get_courses_by_city, name='get_courses_by_city'),
     path('seats-by-city', views.get_cities_with_seats, name='get_seats_by_city'),  # Fixed endpoint
-    # path('populate_initial_data', views.populate_initial_data, name='populate_initial_data'),
+    path('populate_initial_data', views.populate_initial_data, name='populate_initial_data'),
 ]
