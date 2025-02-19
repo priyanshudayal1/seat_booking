@@ -15,7 +15,7 @@ import {
 import { toast } from "react-hot-toast";
 import useLoginStore from "../../store/useLogin";
 
-const PaymentMethodCard = ({
+const LockSeatsMethodCard = ({
   icon: Icon,
   title,
   description,
@@ -144,9 +144,9 @@ const OTPInput = ({ value, onChange, disabled }) => {
   const inputRefs = useRef([...Array(6)].map(() => React.createRef()));
 
   const handleChange = (index, inputValue) => {
-    const newValue = value.split("");
+    const newValue = value.split('');
     newValue[index] = inputValue;
-    const combinedValue = newValue.join("");
+    const combinedValue = newValue.join('');
     onChange(combinedValue);
 
     // Move to next input if value is entered
@@ -157,19 +157,16 @@ const OTPInput = ({ value, onChange, disabled }) => {
 
   const handleKeyDown = (index, e) => {
     // Move to previous input on backspace if current input is empty
-    if (e.key === "Backspace" && !value[index] && index > 0) {
+    if (e.key === 'Backspace' && !value[index] && index > 0) {
       inputRefs.current[index - 1].current?.focus();
     }
   };
 
   const handlePaste = (e) => {
     e.preventDefault();
-    const pastedData = e.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, 6);
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
     onChange(pastedData);
-
+    
     // Focus the next empty input after paste
     const nextEmptyIndex = pastedData.length < 6 ? pastedData.length : 5;
     inputRefs.current[nextEmptyIndex].current?.focus();
@@ -183,10 +180,8 @@ const OTPInput = ({ value, onChange, disabled }) => {
           ref={inputRefs.current[index]}
           type="text"
           maxLength={1}
-          value={value[index] || ""}
-          onChange={(e) =>
-            handleChange(index, e.target.value.replace(/\D/g, ""))
-          }
+          value={value[index] || ''}
+          onChange={(e) => handleChange(index, e.target.value.replace(/\D/g, ''))}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={index === 0 ? handlePaste : undefined}
           disabled={disabled}
@@ -289,7 +284,11 @@ const OTPVerificationSection = ({ onVerified, loading, setLoading }) => {
             Enter the OTP sent to {phoneNumber || "your registered number"}
           </p>
           <div className="flex flex-col items-center space-y-4">
-            <OTPInput value={otp} onChange={setOtp} disabled={loading} />
+            <OTPInput 
+              value={otp}
+              onChange={setOtp}
+              disabled={loading}
+            />
             <button
               onClick={handleVerifyOTP}
               disabled={loading || otp.length !== 6}
@@ -321,12 +320,12 @@ const OTPVerificationSection = ({ onVerified, loading, setLoading }) => {
   );
 };
 
-const Payment = () => {
+const LockSeats = () => {
   const navigate = useNavigate();
-  const [paymentMethod, setPaymentMethod] = useState(null);
+  const [LockSeatsMethod, setLockSeatsMethod] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-
+  
   const selectedCourses = useCourseSelection((state) => state.selectedCourses);
   const reset = useCourseSelection((state) => state.reset);
   const userId = useLoginStore((state) => state.userId);
@@ -334,12 +333,12 @@ const Payment = () => {
   useEffect(() => {
     // Redirect if no courses are selected
     if (Object.keys(selectedCourses).length === 0) {
-      toast.error("Please select courses before proceeding to payment");
+      toast.error("Please select courses before proceeding to LockSeats");
       navigate("/dashboard/new-course-selection");
     }
   }, [selectedCourses, navigate]);
 
-  const paymentMethods = [
+  const LockSeatsMethods = [
     {
       id: "card",
       icon: CreditCard,
@@ -349,7 +348,7 @@ const Payment = () => {
     {
       id: "upi",
       icon: Wallet,
-      title: "UPI Payment",
+      title: "UPI LockSeats",
       description: "Pay using any UPI app",
     },
     {
@@ -360,9 +359,9 @@ const Payment = () => {
     },
   ];
 
-  const handlePayment = async () => {
-    if (!paymentMethod) {
-      toast.error("Please select a payment method");
+  const handleLockSeats = async () => {
+    if (!LockSeatsMethod) {
+      toast.error("Please select a LockSeats method");
       return;
     }
 
@@ -372,14 +371,14 @@ const Payment = () => {
     }
 
     if (Object.keys(selectedCourses).length === 0) {
-      toast.error("No courses selected for payment");
+      toast.error("No courses selected for LockSeats");
       return;
     }
 
     setIsProcessing(true);
     try {
-      const paymentResponse = await api.post("/billing/process-payment", {
-        payment_method: paymentMethod,
+      const LockSeatsResponse = await api.post("/billing/process-LockSeats", {
+        LockSeats_method: LockSeatsMethod,
         userId,
         selected_courses: Object.values(selectedCourses).map((course) => ({
           course_id: course.id,
@@ -395,15 +394,15 @@ const Payment = () => {
         ),
       });
 
-      if (paymentResponse.data.transaction_id) {
-        toast.success("Payment successful!");
+      if (LockSeatsResponse.data.transaction_id) {
+        toast.success("LockSeats successful!");
         reset();
         navigate("/dashboard");
       }
     } catch (error) {
-      console.error("Payment error:", error);
+      console.error("LockSeats error:", error);
       toast.error(
-        error.response?.data?.message || "Payment failed. Please try again."
+        error.response?.data?.message || "LockSeats failed. Please try again."
       );
     } finally {
       setIsProcessing(false);
@@ -422,7 +421,7 @@ const Payment = () => {
             <AlertCircle className="text-orange-400 mr-3" />
             <p className="text-orange-700">
               No courses selected. Please select courses before proceeding to
-              payment.
+              LockSeats.
             </p>
           </div>
           <button
@@ -446,7 +445,7 @@ const Payment = () => {
       >
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
           <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-            Payment Details
+            LockSeats Details
           </h1>
           <button
             onClick={handleBack}
@@ -471,19 +470,19 @@ const Payment = () => {
 
         <div className="mt-4 sm:mt-6 lg:mt-8">
           <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
-            Select Payment Method
+            Select LockSeats Method
           </h2>
           <div
             className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 ${
               !isVerified ? "opacity-50 pointer-events-none" : ""
             }`}
           >
-            {paymentMethods.map((method) => (
-              <PaymentMethodCard
+            {LockSeatsMethods.map((method) => (
+              <LockSeatsMethodCard
                 key={method.id}
                 {...method}
-                selected={paymentMethod === method.id}
-                onSelect={() => setPaymentMethod(method.id)}
+                selected={LockSeatsMethod === method.id}
+                onSelect={() => setLockSeatsMethod(method.id)}
               />
             ))}
           </div>
@@ -491,8 +490,8 @@ const Payment = () => {
 
         <div className="mt-4 sm:mt-6 lg:mt-8 flex justify-end">
           <button
-            onClick={handlePayment}
-            disabled={isProcessing || !paymentMethod || !isVerified}
+            onClick={handleLockSeats}
+            disabled={isProcessing || !LockSeatsMethod || !isVerified}
             className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
               transition-colors font-medium flex items-center justify-center gap-2
               disabled:bg-blue-300 disabled:cursor-not-allowed text-sm sm:text-base"
@@ -515,4 +514,4 @@ const Payment = () => {
   );
 };
 
-export default Payment;
+export default LockSeats;

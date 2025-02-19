@@ -1,13 +1,83 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
+import ReactDOMServer from "react-dom/server";
+import L from "leaflet";
 import toast from "react-hot-toast";
+import { MapPin, School, Users, UserCheck } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 
-const StateMap = ({ selectedCity, cities, onCitySelect }) => {
+const CityTooltip = ({ cityName, courseType, cityStats }) => (
+  <div className="bg-white p-3 rounded-xl shadow-lg border border-gray-100 min-w-[220px] backdrop-blur-sm">
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 mb-3">
+        <MapPin className="w-4 h-4 text-blue-500" />
+        <span className="font-semibold text-gray-800">{cityName}</span>
+      </div>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between w-full bg-blue-50 px-2 py-1.5 rounded-lg">
+          <div className="flex items-center gap-1.5">
+            <School className="w-3.5 h-3.5 text-blue-600" />
+            <span className="text-blue-700">{courseType || "All Courses"}</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between w-full bg-violet-50 px-2 py-1.5 rounded-lg">
+          <div className="flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5 text-violet-600" />
+            <span className="text-violet-700">Total Seats</span>
+          </div>
+          <span className="text-sm text-violet-600 font-medium">
+            {cityStats?.total_seats || 0}
+          </span>
+        </div>
+        <div className="flex items-center justify-between w-full bg-emerald-50 px-2 py-1.5 rounded-lg">
+          <div className="flex items-center gap-1.5">
+            <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="text-emerald-700">Adopted Seats</span>
+          </div>
+          <span className="text-sm text-emerald-600 font-medium">
+            {cityStats?.locked_seats || 0}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const StateMap = ({
+  selectedCity,
+  cities,
+  onCitySelect,
+  selectedCourseType,
+  cityData = {}, // This now receives the aggregated city stats
+}) => {
   const [geoData, setGeoData] = useState(null);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  // Course-specific color configurations
+  const courseColors = {
+    "M.Tech": {
+      primary: "#eab308", // yellow-500
+      light: "#fef9c3", // yellow-100
+      hover: "#facc15", // yellow-400
+    },
+    "B.Tech": {
+      primary: "#ef4444", // red-500
+      light: "#fee2e2", // red-100
+      hover: "#f87171", // red-400
+    },
+    Diploma: {
+      primary: "#22c55e", // green-500
+      light: "#dcfce7", // green-100
+      hover: "#4ade80", // green-400
+    },
+    ITI: {
+      primary: "#f97316", // orange-500
+      light: "#ffedd5", // orange-100
+      hover: "#fb923c", // orange-400
+    },
+  };
 
   useEffect(() => {
     fetch("/public/madhya_pradesh.geojson")
@@ -32,11 +102,30 @@ const StateMap = ({ selectedCity, cities, onCitySelect }) => {
       (city) => city.toLowerCase() === normalizedCityName
     );
 
+    const courseColor = courseColors[selectedCourseType] || {
+      primary: "#2563eb",
+      light: "#fef9c3",
+      hover: "#60a5fa",
+    };
+
+    // Enhanced map styling with beautiful border
     return {
-      color: isSelected ? "#1d4ed8" : hasInstitutes ? "#2563eb" : "#64748b",
+      color: isSelected
+        ? courseColor.primary
+        : hasInstitutes
+        ? courseColor.primary
+        : "#64748b",
       weight: isSelected ? 3 : hasInstitutes ? 2 : 1.5,
-      fillColor: isSelected ? "#60a5fa" : hasInstitutes ? "#fef9c3" : "#fef08a",
+      fillColor: isSelected
+        ? courseColor.hover
+        : hasInstitutes
+        ? courseColor.light
+        : "#fef08a",
       fillOpacity: isSelected ? 0.7 : hasInstitutes ? 0.5 : 0.2,
+      // Adding a beautiful outer glow effect
+      className: "map-feature",
+      dashArray: isSelected ? "" : hasInstitutes ? "5, 5" : "",
+      opacity: 1,
     };
   };
 
@@ -47,59 +136,82 @@ const StateMap = ({ selectedCity, cities, onCitySelect }) => {
       (city) => city.toLowerCase() === normalizedCityName
     );
 
-    layer.on({
-      mouseover: (e) => {
-        if (hasInstitutes) {
+    // Create permanent city label
+    if (hasInstitutes) {
+      const labelContent = ReactDOMServer.renderToString(
+        <div className="bg-white px-2 py-0.5 rounded-md shadow-sm border border-gray-100">
+          <div className="flex items-center gap-1.5">
+            <MapPin className="w-3 h-3 text-blue-500" />
+            <span className="text-sm text-gray-800 font-medium">
+              {cityName}
+            </span>
+          </div>
+        </div>
+      );
+
+      layer.bindTooltip(labelContent, {
+        permanent: true,
+        direction: "center",
+        className: "city-label has-courses",
+      });
+
+      // Create hover tooltip with seat information
+      const courseTooltip = L.tooltip({
+        permanent: false,
+        direction: "top",
+        className: "course-tooltip",
+        opacity: 1,
+      });
+
+      courseTooltip.setContent(() => {
+        const tooltipElement = document.createElement("div");
+        tooltipElement.innerHTML = ReactDOMServer.renderToString(
+          <CityTooltip
+            cityName={cityName}
+            courseType={selectedCourseType}
+            cityStats={cityData[cityName]}
+          />
+        );
+        return tooltipElement;
+      });
+
+      layer.on({
+        mouseover: (e) => {
           const layer = e.target;
           layer.setStyle({
             fillOpacity: 0.7,
             weight: 2,
           });
-        }
-      },
-      mouseout: (e) => {
-        if (hasInstitutes) {
+          layer.bringToFront();
+          courseTooltip.setLatLng(e.latlng).addTo(layer._map);
+        },
+        mousemove: (e) => {
+          courseTooltip.setLatLng(e.latlng);
+        },
+        mouseout: (e) => {
           const layer = e.target;
           layer.setStyle(getFeatureStyle(feature));
-        }
-      },
-      click: () => {
-        if (hasInstitutes) {
+          layer._map.removeLayer(courseTooltip);
+        },
+        click: () => {
           if (onCitySelect) {
             onCitySelect(cityName);
           }
-          navigate(`/dashboard/city/${cityName}`);
-        } else {
-          toast.error(`No courses available in ${cityName}`, {
-            duration: 2000,
-            position: 'top-center',
-            className: 'bg-white text-gray-900 border border-gray-200',
-          });
-        }
-      },
-    });
-
-    const tooltipContent = `
-      <div class="flex items-center justify-center gap-1 ${
-        hasInstitutes ? "text-blue-600" : "text-gray-500"
-      }">
-        ${
-          hasInstitutes
-            ? '<div class="w-3 h-3 flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div>'
-            : ""
-        }
-        <span class="${hasInstitutes ? "font-semibold" : "font-medium"}">${
-      cityName || "Unknown"
-    }</span>
-      </div>`;
-
-    layer.bindTooltip(tooltipContent, {
-      permanent: true,
-      direction: "center",
-      className: `city-label ${
-        hasInstitutes ? "available-city" : "unavailable-city"
-      }`,
-    });
+          const path = selectedCourseType
+            ? `/course-list/${cityName}/${selectedCourseType}`
+            : `/course-list/${cityName}`;
+          navigate(path);
+        },
+      });
+    } else {
+      layer.on("click", () => {
+        toast.error(`No courses available in ${cityName}`, {
+          duration: 2000,
+          position: "top-center",
+          className: "bg-white text-gray-900 border border-gray-200",
+        });
+      });
+    }
   };
 
   if (error) {
@@ -137,21 +249,49 @@ const StateMap = ({ selectedCity, cities, onCitySelect }) => {
           filter: grayscale(1) opacity(0.6);
         }
         .city-label {
-          background: white;
-          border: none;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 0.75rem;
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          font-size: 12px;
+          padding: 0;
         }
-        .available-city {
-          border: 1px solid #fef9c3;
+        .city-label.has-courses {
+          z-index: 500;
+        }
+        .course-tooltip {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          font-size: 12px;
+          padding: 0;
+          transition: all 0.2s ease-in-out;
+          z-index: 1000;
+        }
+        .course-tooltip .leaflet-tooltip-content {
+          transform: scale(0.95) translateY(10px);
+          transition: all 0.2s ease-in-out;
+          transform-origin: center bottom;
+          opacity: 0;
+        }
+        .course-tooltip.leaflet-tooltip-visible .leaflet-tooltip-content {
+          transform: scale(1) translateY(0);
           opacity: 1;
-          font-weight: 600;
         }
-        .unavailable-city {
-          border: 1px solid #fef08a;
-          opacity: 0.8;
+        .leaflet-tooltip-top:before,
+        .leaflet-tooltip-bottom:before,
+        .leaflet-tooltip-left:before,
+        .leaflet-tooltip-right:before {
+          display: none !important;
+        }
+        .map-feature {
+          filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.1));
+          transition: all 0.3s ease;
+        }
+        .map-feature:hover {
+          filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.2));
+        }
+        path {
+          transition: all 0.3s ease-in-out;
         }
       `}</style>
     </div>

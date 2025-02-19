@@ -190,6 +190,54 @@ const useCourseSelection = create(
 
       // Clear error
       clearError: () => set({ error: null }),
+
+      // Get courses for a specific city
+      getCoursesByCity: (cityName) => {
+        const { courses } = get();
+        const coursesByType = {
+          "M.Tech": [],
+          "B.Tech": [],
+          Diploma: [],
+          Polytechnic: [],
+          ITI: [],
+        };
+
+        const cityFilteredCourses = courses.filter(course => course.city === cityName);
+        
+        cityFilteredCourses.forEach(course => {
+          if (coursesByType[course.course_name]) {
+            coursesByType[course.course_name].push({
+              id: course.id,
+              branch: course.branch,
+              totalSeats: course.total_seats,
+              leftSeats: course.left_seats,
+              lockedSeats: course.locked_seats,
+              price_per_seat: course.price_per_seat
+            });
+          }
+        });
+
+        return coursesByType;
+      },
+
+      // Get seat information for all cities
+      getCitySeatInfo: () => {
+        const { courses } = get();
+        const cityInfo = {};
+
+        courses.forEach(course => {
+          if (!cityInfo[course.city]) {
+            cityInfo[course.city] = {
+              totalSeats: 0,
+              availableSeats: 0
+            };
+          }
+          cityInfo[course.city].totalSeats += parseInt(course.total_seats);
+          cityInfo[course.city].availableSeats += parseInt(course.left_seats);
+        });
+
+        return cityInfo;
+      },
     }),
     {
       name: "course-selection-storage",

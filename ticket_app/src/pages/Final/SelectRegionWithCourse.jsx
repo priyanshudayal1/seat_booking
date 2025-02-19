@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { MapPin, Check, ChevronLeft, AlertCircle } from "lucide-react";
-import useCourseSelection from "../../store/useCourseSelection";
-import StateMap from "./Map";
 import { motion } from "framer-motion";
+import useCourseSelection from "../../store/useCourseSelection";
+import StateMap from "../Dashboard/Map";
 
 const LoadingState = () => (
   <div className="max-w-5xl mx-auto p-8">
@@ -104,35 +104,38 @@ const NoCourses = () => (
   </motion.div>
 );
 
-const NewCourseSelection = () => {
-  const { courses = [], fetchCourses, isLoading, reset } = useCourseSelection();
+const SelectRegionWithCourse = () => {
+  const { courses = [], fetchCourses, isLoading } = useCourseSelection();
   const [selectedCity, setSelectedCity] = useState(null);
   const navigate = useNavigate();
   const { courseType } = useParams();
 
   useEffect(() => {
-    fetchCourses();
-  }, [fetchCourses]);
+    if (!courses || courses.length === 0) {
+      fetchCourses();
+    }
+  }, [courses, fetchCourses]);
 
   // Add city stats calculation
   const cityStats = useMemo(() => {
     if (!Array.isArray(courses)) return {};
-    
+
     return courses.reduce((acc, course) => {
       if (!course.city) return acc;
-      
+
       if (!acc[course.city]) {
         acc[course.city] = {
           total_seats: 0,
           locked_seats: 0,
-          available_seats: 0
+          available_seats: 0,
         };
       }
-      
+
       acc[course.city].total_seats += course.total_seats || 0;
       acc[course.city].available_seats += course.left_seats || 0;
-      acc[course.city].locked_seats += (course.total_seats - course.left_seats) || 0;
-      
+      acc[course.city].locked_seats +=
+        course.total_seats - course.left_seats || 0;
+
       return acc;
     }, {});
   }, [courses]);
@@ -163,11 +166,9 @@ const NewCourseSelection = () => {
   }, [courses, selectedCity, courseType]);
 
   const handleCourseSelect = () => {
-    reset(); // Reset any existing selections before navigating
-    // Add courseType to the navigation
     const path = courseType
-      ? `/dashboard/city/${selectedCity}/${courseType}`
-      : `/dashboard/city/${selectedCity}`;
+      ? `/course-list/${selectedCity}/${courseType}`
+      : `/course-list/${selectedCity}`;
     navigate(path);
   };
 
@@ -238,4 +239,4 @@ const NewCourseSelection = () => {
   );
 };
 
-export default NewCourseSelection;
+export default SelectRegionWithCourse;

@@ -5,6 +5,7 @@ from models.user import User
 from extensions import db
 import random
 import json
+from sqlalchemy import func
 
 courses_bp = Blueprint('courses', __name__)
 
@@ -212,3 +213,26 @@ def update_multiple_courses():
     except Exception as e:
         db.session.rollback()
         return jsonify({"message": str(e)}), 500
+
+@courses_bp.route('/seats-by-city', methods=['GET'])
+def get_seats_by_city():
+    try:
+        # Query to get total and available seats by city
+        seats_by_city = db.session.query(
+            Course.city,
+            func.sum(Course.total_seats).label('total_seats'),
+            func.sum(Course.available_seats).label('available_seats')
+        ).group_by(Course.city).all()
+        
+        # Convert to dictionary format
+        result = {
+            city: {
+                'totalSeats': int(total_seats),
+                'availableSeats': int(available_seats)
+            }
+            for city, total_seats, available_seats in seats_by_city
+        }
+        
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

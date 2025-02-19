@@ -295,3 +295,89 @@ def update_multiple_courses(request):
         return JsonResponse({"message": "Courses updated successfully", "updated_courses": "B.Tech, M.Tech, Polytechnic, Diploma, ITI"}, status=200)
     except Exception as e:
         return JsonResponse({"message": str(e)}, status=500)
+
+@csrf_exempt
+def get_courses_by_city(request, city_name):
+    try:
+        courses = Course.objects.filter(city=city_name)
+        if not courses:
+            return JsonResponse({"message": "No courses found in this city"}, status=404)
+            
+        courses_by_type = {}
+        for course in courses:
+            if course.course_name not in courses_by_type:
+                courses_by_type[course.course_name] = {
+                    'branches': [],
+                    'price_per_seat': course.price_per_seat
+                }
+            courses_by_type[course.course_name]['branches'].append({
+                'id': course.id,
+                'name': course.branch,
+                'totalSeats': course.total_seats,
+                'leftSeats': course.left_seats,
+                'lockedSeats': course.locked_seats
+            })
+        
+        return JsonResponse({
+            'city': city_name,
+            'courses': courses_by_type
+        })
+    except Exception as e:
+        return JsonResponse({"message": str(e)}, status=500)
+
+@csrf_exempt
+def get_cities_with_seats(request):
+    try:
+        cities = Course.objects.values('city').annotate(
+            total_seats=models.Sum('total_seats'),
+            available_seats=models.Sum('left_seats')
+        )
+        
+        city_data = {
+            city['city']: {
+                'totalSeats': city['total_seats'],
+                'availableSeats': city['available_seats']
+            }
+            for city in cities
+        }
+        
+        return JsonResponse(city_data)
+    except Exception as e:
+        return JsonResponse({"message": str(e)}, status=500)
+
+@csrf_exempt
+def populate_initial_data(request):
+    try:
+        json_file_path = os.path.join(os.path.dirname(__file__), 'output.json')
+        # Define price mapping
+        price_mapping = {
+            'B.Tech': 250000,  # 2.5 lakh
+            'Diploma': 150000,  # 1.5 lakh
+            'ITI': 100000      # 1 lakh
+        }
+    
+        with open(json_file_path, 'r') as file:
+            data = json.load(file)
+            for course in data:
+                # Print courses where total_seats is None
+                if course.get('total_seats') is None:
+                    print(f"Course with no seats: {course['course_name']} - {course['branch']} - {course['city']}")
+                    continue
+                
+                print('course:', course)
+                # Fix: Use 'institute_type ' with space to match JSON key
+                new_course = Course(
+                    course_name=course['course_name'],
+                    branch=course['branch'],
+                    city=course['city'],
+                    total_seats=course['total_seats'],
+                    left_seats=course['total_seats'],
+                    price_per_seat=price_mapping.get(course['course_name'], 0),
+                    institute_type=course['institute_type '].strip()  # Added strip() to remove whitespace
+                )
+                new_course.save()
+        return JsonResponse({"message": "Data populated successfully"}, status=200)
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        print(f"Error details: {type(e).__name__}")
+        return JsonResponse({"message": f"Error: {str(e)}", "error_type": type(e).__name__}, status=500)

@@ -15,4 +15,8 @@ urlpatterns = [
     path('course/generate-otp', views.generate_course_otp, name='generate_course_otp'),
     path('course/verify-otp', views.verify_course_otp, name='verify_course_otp'),
     path('course/update-multiple', views.update_multiple_courses, name='update_multiple_courses'),
+    path('cities', views.get_cities_with_seats, name='get_cities_with_seats'),
+    path('city/<str:city_name>', views.get_courses_by_city, name='get_courses_by_city'),
+    path('seats-by-city', views.get_cities_with_seats, name='get_seats_by_city'),  # Fixed endpoint
+    # path('populate_initial_data', views.populate_initial_data, name='populate_initial_data'),
 ]

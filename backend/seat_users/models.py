@@ -48,7 +48,7 @@ class Course(models.Model):
     price_per_seat = models.DecimalField(max_digits=10, decimal_places=2)
     institute_name = models.CharField(max_length=255, default='JEC Jabalpur')
     city = models.CharField(max_length=255, default='Jabalpur')
-
+    institute_type = models.CharField(max_length=255, default='Engineering College')
     def to_dict(self):
         return {
             'id': self.id,
@@ -75,6 +75,7 @@ class User(models.Model):
     adopted_students = models.IntegerField(default=0)
     role = models.CharField(max_length=20, default='user')
     created_at = models.DateTimeField(default=timezone.now)
+    locked_courses = models.JSONField(default=list)
 
     def to_dict(self):
         return {
@@ -86,5 +87,6 @@ class User(models.Model):
             'company_name': self.company_name,
             'adopted_students': self.adopted_students,
             'role': self.role,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat(),
+            'locked_courses': self.locked_courses
         }

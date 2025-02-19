@@ -9,10 +9,10 @@ import {
   AlertCircle,
   Building2,
 } from "lucide-react";
-import useCourseSelection from "../../store/useCourseSelection";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import UnsavedChangesDialog from "../../components/UnsavedDialog";
+import useCourseSelection from "../../store/useCourseSelection";
 
 const formatPrice = (price) => {
   return parseFloat(price).toLocaleString("en-IN", {
@@ -35,12 +35,12 @@ const CourseStep = ({ course, seats, onSeatChange, onSelect, isSelected }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-white rounded-lg p-2.5 sm:p-3 shadow hover:shadow-md transition-all border border-gray-100 group h-full"
+    className="bg-white rounded-lg p-1.5 shadow hover:shadow-md transition-all border border-gray-100 group"
   >
-    <div className="flex flex-col gap-2 h-full">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-start gap-2 flex-1 min-w-0">
-          <motion.label className="relative flex items-center cursor-pointer group pt-0.5">
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-1.5">
+          <motion.label className="relative flex items-center cursor-pointer group">
             <div className="relative">
               <input
                 type="checkbox"
@@ -50,7 +50,7 @@ const CourseStep = ({ course, seats, onSeatChange, onSelect, isSelected }) => (
                 disabled={course.left_seats === 0}
               />
               <div
-                className={`w-4 h-4 border-2 rounded-md 
+                className={`w-3.5 h-3.5 border-2 rounded-md 
                 transition-all duration-200 flex items-center justify-center
                 group-hover:shadow-sm relative
                 ${
@@ -61,68 +61,74 @@ const CourseStep = ({ course, seats, onSeatChange, onSelect, isSelected }) => (
               >
                 <motion.div
                   initial={false}
-                  animate={isSelected ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
+                  animate={
+                    isSelected
+                      ? { opacity: 1, scale: 1 }
+                      : { opacity: 0, scale: 0.5 }
+                  }
                   transition={{ duration: 0.2, type: "spring", stiffness: 500 }}
                 >
-                  <Check className="w-3 h-3 text-white" />
+                  <Check className="w-2.5 h-2.5 text-white" />
                 </motion.div>
               </div>
             </div>
           </motion.label>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-gray-800 truncate">
+          <div>
+            <h3 className="text-xs font-semibold text-gray-800">
               {course.branch}
             </h3>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="px-2 py-0.5 bg-blue-100 text-blue-600 rounded-full text-xs font-medium truncate">
+            <div className="flex items-center gap-1 mt-0.5">
+              <span className="px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded-full text-[10px] font-medium">
                 {course.course_name}
               </span>
             </div>
           </div>
         </div>
-        <div className="text-right shrink-0">
-          <div className="text-sm sm:text-base font-bold text-blue-600">
+        <div className="text-right">
+          <div className="text-sm font-bold text-blue-600">
             {formatPrice(course.price_per_seat)}
           </div>
-          <div className="text-xs text-gray-500">per seat</div>
+          <div className="text-[10px] text-gray-500">per seat</div>
         </div>
       </div>
 
       {isSelected && (
         <motion.div
-          className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-1 mt-auto"
+          className="flex items-center justify-between gap-1.5 pt-0.5"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative group flex-1 sm:flex-none">
+          <div className="flex items-center gap-1.5">
+            <div className="relative group flex-1">
               <input
                 type="number"
                 min="1"
                 max={course.left_seats}
-                value={seats === undefined || seats === null ? "" : String(seats)}
+                value={
+                  seats === undefined || seats === null ? "" : String(seats)
+                }
                 onChange={(e) => onSeatChange(course.id, e.target.value)}
-                className="w-full sm:w-20 p-1 text-sm border-2 border-gray-200 rounded-lg 
-                  focus:ring-2 focus:ring-blue-100 focus:border-blue-500 
+                className="w-16 p-0.5 text-xs border border-gray-200 rounded-md 
+                  focus:ring-1 focus:ring-blue-100 focus:border-blue-500 
                   transition-all bg-gray-50 group-hover:bg-white
                   placeholder:text-gray-400 [appearance:textfield] 
                   [&::-webkit-outer-spin-button]:appearance-none 
                   [&::-webkit-inner-spin-button]:appearance-none"
                 placeholder={`Max ${course.left_seats}`}
               />
-              <span className="absolute right-2 inset-y-0 flex items-center pointer-events-none text-xs text-gray-400">
+              <span className="absolute right-1.5 inset-y-0 flex items-center pointer-events-none text-[10px] text-gray-400">
                 seats
               </span>
             </div>
             {seats > 0 && (
-              <div className="text-sm font-medium text-blue-600 whitespace-nowrap">
+              <div className="text-xs font-medium text-blue-600">
                 = {formatPrice(seats * parseFloat(course.price_per_seat))}
               </div>
             )}
           </div>
-          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium whitespace-nowrap">
+          <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-medium whitespace-nowrap">
             {course.total_seats - course.left_seats + parseInt(seats || 0)}/
-            {course.total_seats} {'Seats Adopted'}
+            {course.total_seats}
           </span>
         </motion.div>
       )}
@@ -179,28 +185,7 @@ const SelectionSummary = ({ selections, courses }) => {
   );
 };
 
-const calculateCityStats = (courses) => {
-  return courses.reduce((acc, course) => {
-    if (!course.city) return acc;
-
-    if (!acc[course.city]) {
-      acc[course.city] = {
-        total_seats: 0,
-        locked_seats: 0,
-        available_seats: 0,
-      };
-    }
-
-    acc[course.city].total_seats += course.total_seats || 0;
-    acc[course.city].available_seats += course.left_seats || 0;
-    acc[course.city].locked_seats +=
-      course.total_seats - course.left_seats || 0;
-
-    return acc;
-  }, {});
-};
-
-const ShowCityCourses = () => {
+const RegionCourseList = () => {
   const { city, courseType } = useParams();
   const {
     courses = [],
@@ -208,7 +193,6 @@ const ShowCityCourses = () => {
     fetchCourses,
     isLoading,
     error,
-    reset,
   } = useCourseSelection();
   const [localSelections, setLocalSelections] = useState({});
   const [isDirty, setIsDirty] = useState(false);
@@ -216,13 +200,31 @@ const ShowCityCourses = () => {
   const [attemptedPath, setAttemptedPath] = useState(null);
   const navigate = useNavigate();
 
-  // Reset all selections when component mounts
+  // Only fetch courses if they're not already loaded
   useEffect(() => {
-    reset(); // Reset global store selections
-    setLocalSelections({}); // Reset local selections
-    setIsDirty(false); // Reset dirty state
-    fetchCourses(); // Fetch fresh courses
-  }, [reset, fetchCourses]);
+    if (!courses || courses.length === 0) {
+      fetchCourses();
+    }
+  }, [courses, fetchCourses]);
+
+  // Initialize local selections from store
+  useEffect(() => {
+    const currentSelections = useCourseSelection.getState().selectedCourses;
+    if (currentSelections && Object.keys(currentSelections).length > 0) {
+      const initialSelections = Object.entries(currentSelections).reduce(
+        (acc, [courseId, value]) => {
+          acc[courseId] = {
+            isSelected: true,
+            seats: value.selectedSeats.toString(),
+            totalPrice: value.totalPrice,
+          };
+          return acc;
+        },
+        {}
+      );
+      setLocalSelections(initialSelections);
+    }
+  }, []);
 
   const cityCourses = useMemo(() => {
     if (!Array.isArray(courses)) return [];
@@ -329,6 +331,7 @@ const ShowCityCourses = () => {
           branch: course.branch,
           courseName: course.course_name,
           city: course.city,
+          institute: course.institute_name || "Other Institutes",
         };
         return acc;
       }, {});
@@ -338,11 +341,18 @@ const ShowCityCourses = () => {
       return;
     }
 
-    // Update both selections and selectedCourses in the store
-    updateSelections(currentSelections);
-    setAttemptedPath("/dashboard/payment");
-    useCourseSelection.getState().updateCourseSelection(currentSelections);
-    navigate("/dashboard/payment");
+    // Update store without resetting previous selections
+    const existingSelections =
+      useCourseSelection.getState().selectedCourses || {};
+    const mergedSelections = {
+      ...existingSelections,
+      ...currentSelections,
+    };
+
+    updateSelections(mergedSelections);
+    setAttemptedPath("cart");
+    useCourseSelection.getState().updateCourseSelection(mergedSelections);
+    navigate("/cart");
   };
 
   const blocker = useBlocker(
@@ -364,8 +374,6 @@ const ShowCityCourses = () => {
       setAttemptedPath(null);
     }
   };
-
-  const cityStats = useMemo(() => calculateCityStats(courses), [courses]);
 
   if (isLoading) {
     return <LoadingState />;
@@ -401,10 +409,10 @@ const ShowCityCourses = () => {
 
   return (
     <>
-      <div className="w-full min-h-[calc(100vh-64px)] flex flex-col">
-        <div className="flex-1 bg-white p-2 sm:p-4 lg:p-6 flex flex-col">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <div className="flex items-center gap-2 sm:gap-3">
+      <div className="w-full px-4 py-2 lg:p-8 min-h-[calc(100vh-64px)] flex flex-col">
+        <div className="bg-white rounded-2xl shadow-xl p-4 pb-20 lg:p-8 lg:pb-20 relative flex flex-col flex-1">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
               <button
                 onClick={() =>
                   navigate(
@@ -413,18 +421,16 @@ const ShowCityCourses = () => {
                       : "/dashboard/courses"
                   )
                 }
-                className="flex items-center justify-center h-9 sm:h-10 px-3 sm:px-4 rounded-lg 
+                className="flex items-center justify-center h-10 px-4 rounded-lg 
                   bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800
                   border border-gray-200 transition-colors"
               >
-                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-1" />
-                <span className="text-sm sm:text-base">
-                  {courseType ? "Back to Cities" : "Back to Courses"}
-                </span>
+                <ChevronLeft className="w-5 h-5 mr-1" />
+                {courseType ? "Back to Cities" : "Back to Courses"}
               </button>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-                <h2 className="text-lg sm:text-xl font-bold text-gray-800 truncate">
+              <div className="flex items-center space-x-2">
+                <MapPin className="w-5 h-5 text-blue-500" />
+                <h2 className="text-xl font-bold text-gray-800">
                   {courseType
                     ? `${courseType} Courses in ${city}`
                     : `All Courses in ${city}`}
@@ -433,23 +439,23 @@ const ShowCityCourses = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 px-0.5 pb-20">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 px-0.5 pb-16">
             <SelectionSummary selections={localSelections} courses={courses} />
 
             {Object.keys(coursesByInstitute).length > 0 ? (
               Object.entries(coursesByInstitute).map(
                 ([institute, instituteCourses]) => (
-                  <div key={institute} className="mb-6 sm:mb-8">
-                    <div className="flex items-center gap-3 mb-3 sm:mb-4">
-                      <div className="p-1.5 sm:p-2 bg-blue-50 rounded-lg">
-                        <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+                  <div key={institute} className="mb-8">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="p-2 bg-blue-50 rounded-lg">
+                        <Building2 className="w-5 h-5 text-blue-500" />
                       </div>
-                      <h3 className="text-base sm:text-lg font-semibold text-gray-800">
+                      <h3 className="text-lg font-semibold text-gray-800">
                         {institute}
                       </h3>
                       <div className="h-px flex-1 bg-gray-100"></div>
                     </div>
-                    <div className="grid gap-2 sm:gap-3 lg:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <div className="grid gap-3 lg:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                       {instituteCourses.map((course) => (
                         <CourseStep
                           key={course.id}
@@ -469,17 +475,17 @@ const ShowCityCourses = () => {
             )}
           </div>
 
-          <div className="fixed sm:absolute bottom-0 left-0 right-0 p-3 sm:p-4 lg:p-6 bg-white/95 backdrop-blur-sm sm:backdrop-blur-none border-t">
-            <div className="flex justify-end items-center gap-4 max-w-full mx-auto">
+          <div className="fixed sm:absolute bottom-0 left-0 right-0 p-4 sm:p-6 bg-white/95 backdrop-blur-sm sm:backdrop-blur-none border-t">
+            <div className="flex justify-end items-center gap-4 w-full px-4">
               <button
                 onClick={handleProceed}
-                className="flex items-center justify-center h-10 sm:h-11 px-4 sm:px-6 rounded-lg 
+                className="flex items-center justify-center h-11 px-6 rounded-lg 
                   bg-blue-500/95 backdrop-blur-sm sm:backdrop-blur-none text-white hover:bg-blue-600/95 
                   transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={Object.keys(localSelections).length === 0}
               >
-                <span className="text-sm sm:text-base mr-2">Proceed to Lock</span>
-                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="mr-2">Proceed to Lock</span>
+                <ChevronRight className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -519,4 +525,4 @@ const ShowCityCourses = () => {
   );
 };
 
-export default ShowCityCourses;
+export default RegionCourseList;
