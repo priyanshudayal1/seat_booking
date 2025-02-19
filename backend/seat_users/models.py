@@ -49,6 +49,7 @@ class Course(models.Model):
     institute_name = models.CharField(max_length=255, null=True,blank=True)
     city = models.CharField(max_length=255, null=True,blank=True)
     institute_type = models.CharField(max_length=255, null=True,blank=True)
+    
     def to_dict(self):
         return {
             'id': self.id,
@@ -69,14 +70,15 @@ class Course(models.Model):
 class User(models.Model):
     full_name = models.CharField(max_length=255)
     designation = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
-    phone_number = models.CharField(max_length=20, unique=True)
+    email = models.EmailField(unique=False)
+    phone_number = models.CharField(max_length=20, unique=False)
     company_name = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
     adopted_students = models.IntegerField(default=0)
     role = models.CharField(max_length=20, default='user')
     created_at = models.DateTimeField(default=timezone.now)
     locked_courses = models.JSONField(default=list)
+    industry = models.CharField(max_length=255, null=True,blank=True)
 
     def to_dict(self):
         return {
@@ -89,5 +91,6 @@ class User(models.Model):
             'adopted_students': self.adopted_students,
             'role': self.role,
             'created_at': self.created_at.isoformat(),
-            'locked_courses': self.locked_courses
+            'locked_courses': self.locked_courses,
+            'industry': self.industry
         }

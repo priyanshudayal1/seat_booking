@@ -1,10 +1,18 @@
 @import "tailwindcss";
 
 @keyframes blob {
-  0% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-  100% { transform: translate(0px, 0px) scale(1); }
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
 }
 
 .animate-blob {
@@ -18,3 +26,10 @@
 .animation-delay-4000 {
   animation-delay: 4s;
 }
+
+button:hover {
+  cursor: pointer;
+}
+
+
+{'email': {'fullName': 'Priyanshu Dayal', 'designation': 'Developer', 'email': 'piyushdayal@108gmail.com', 'phone': '9406639268', 'company': 'Star Builds', 'industry': 'Technical', 'selectedCourses': {'11125': {'id': '11125', 'selectedSeats': 1, 'pricePerSeat': 250000, 'totalPrice': 250000, 'branch': 'Artificial Intelligence (AI) and Data Science', 'courseName': 'B.Tech', 'city': 'Jabalpur', 'institute': 'Jabalpur Engineering College, Jabalpur, (JEC) (1947)'}, '11130': {'id': '11130', 'selectedSeats': 1, 'pricePerSeat': 250000, 'totalPrice': 250000, 'branch': 'Industrial & Production Engineering', 'courseName': 'B.Tech', 'city': 'Jabalpur', 'institute': 'Jabalpur Engineering College, Jabalpur, (JEC) (1947)'}, '11131': {'id': '11131', 'selectedSeats': 1, 'pricePerSeat': 250000, 'totalPrice': 250000, 'branch': 'Information Technology', 'courseName': 'B.Tech', 'city': 'Jabalpur', 'institute': 'Jabalpur Engineering College, Jabalpur, (JEC) (1947)'}, '11137': {'id': '11137', 'selectedSeats': 10, 'pricePerSeat': 250000, 'totalPrice': 2500000, 'branch': 'Computer Science and Engineering', 'courseName': 'B.Tech', 'city': 'Rewa', 'institute': 'Rewa Engineering College, Rewa (REC) (1964)'}, '11389': {'id': '11389', 'selectedSeats': 1, 'pricePerSeat': 150000, 'totalPrice': 150000, 'branch': 'Computer Science & Engineering', 'courseName': 'Diploma', 'city': 'Sheopur', 'institute': 'Govt. Polytechnic College, Sheopur'}, '11390': {'id': '11390', 'selectedSeats': 1, 'pricePerSeat': 150000, 'totalPrice': 150000, 'branch': 'Mechanical Engineering', 'courseName': 'Diploma', 'city': 'Sheopur', 'institute': 'Govt. Polytechnic College, Sheopur'}}, 'totalPrice': 3550000}}

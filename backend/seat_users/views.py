@@ -2,10 +2,12 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
-from .models import User
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import User, Billing
 import json
 from django.views.decorators.http import require_POST
-from .models import Billing
 import random
 import string
 import requests
@@ -83,16 +85,162 @@ def update_profile(request, user_id):
         except User.DoesNotExist:
             return JsonResponse({"message": "User not found"}, status=404)
 
-from django.core.mail import send_mail
+from django.template import Template, Context
+# ...existing imports...
 
-def send_sms(email, otp):
-    subject = "Your OTP Code"
-    message = f"Your OTP code is {otp}."
-    from_email = os.getenv("EMAIL_HOST_USER", "your-email@example.com")
+def send_sms(email, context):
+    subject = "Your OTP Code - Ticket App"
+    email_template = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 32px;
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #eaeaea;
+            margin-bottom: 24px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3b82f6;
+            margin-bottom: 16px;
+        }
+        .title {
+            color: #1f2937;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .otp-container {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            margin: 24px 0;
+        }
+        .otp {
+            font-size: 32px;
+            font-weight: bold;
+            color: #3b82f6;
+            letter-spacing: 4px;
+        }
+        .warning {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 24px;
+        }
+        .details {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+        .details-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 12px;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #4b5563;
+        }
+        .footer {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #eaeaea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Seat Adoption Portal</div>
+            <div class="title">OTP Verification</div>
+        </div>
+        
+        <p>Dear {{ full_name }},</p>
+        
+        <p>Thank you for using our service. Please use the following OTP to verify your seat booking:</p>
+        
+        <div class="otp-container">
+            <div class="otp">{{ otp }}</div>
+        </div>
+
+        <div class="details">
+            <div class="details-title">Your Adoption Details:</div>
+            <div class="detail-item">
+                <span>Name:</span>
+                <span>{{ full_name }}</span>
+            </div>
+            <div class="detail-item">
+                <span>Email:</span>
+                <span>{{ email }}</span>
+            </div>
+            <div class="detail-item">
+                <span>Phone:</span>
+                <span>{{ phone_number }}</span>
+            </div>
+            <div class="detail-item">
+                <span>Company:</span>
+                <span>{{ company_name }}</span>
+            </div>
+            <div class="detail-item">
+                <span>Industry:</span>
+                <span>{{ industry }}</span>
+            </div>
+            <div class="detail-item">
+                <span>Total Amount:</span>
+                <span>₹{{ total_price|floatformat:2 }}</span>
+            </div>
+        </div>
+
+        <p class="warning">This OTP will expire in 10 minutes. Please do not share this OTP with anyone.</p>
+
+        <div class="footer">
+            This is an automated message. Please do not reply to this email.
+        </div>
+    </div>
+</body>
+</html>
+"""
+    template = Template(email_template)
+    html_message = template.render(Context(context))
+    from_email = settings.EMAIL_HOST_USER
     recipient_list = [email]
     
     try:
-        send_mail(subject, message, from_email, recipient_list)
+        send_mail(
+            subject,
+            "",  # Plain text version - empty as we're using HTML
+            from_email,
+            recipient_list,
+            html_message=html_message
+        )
         return {"status": True, "message": "Email sent successfully"}
     except Exception as e:
         print(f"Email sending failed: {str(e)}")
@@ -102,61 +250,163 @@ def send_sms(email, otp):
 @require_POST
 def generate_otp(request):
     data = json.loads(request.body)
+    print('data ', data)
+    # Extract user details from the request
+    user_data = data.get('email', {})
+    is_resend = data.get('isResend', False)  # Check if this is a resend request
     
-    # Get user ID and verify user exists
-    user_id = data.get('userId')
-    try:
-        user = User.objects.get(pk=user_id)
-    except User.DoesNotExist:
-        return JsonResponse({"message": "User not found"}, status=404)
+    if is_resend:
+        # For resend, we only need email to regenerate OTP
+        email = user_data
+        try:
+            # Try to get existing billing record
+            billing = Billing.objects.get(user__email=email, payment_status='pending')
+            user = billing.user
+            
+            # Generate new OTP
+            otp = ''.join(random.choices(string.digits, k=6))
+            
+            # Update the OTP in billing record
+            billing.otp = otp
+            billing.save()
+            
+            # Prepare context for email template
+            email_context = {
+                'otp': otp,
+                'full_name': user.full_name,
+                'email': user.email,
+                'phone_number': user.phone_number,
+                'company_name': user.company_name,
+                'designation': user.designation,
+                'industry': user.industry,
+                'total_price': billing.total_price
+            }
+            
+            # Send OTP via email
+            sms_response = send_sms(email, email_context)
+            
+            if sms_response["status"] != True:
+                return JsonResponse({"message": "Failed to send OTP"}, status=500)
+            
+            return JsonResponse({
+                "message": "OTP resent successfully",
+                "phone": f"{'*' * (len(email.split('@')[0]) - 2)}{email[-2:]}@{email.split('@')[1]}"
+            })
+            
+        except Billing.DoesNotExist:
+            return JsonResponse({"message": "No pending transaction found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"message": str(e)}, status=500)
+    
+    # Regular OTP generation flow for new requests
+    user_id = user_data.get('userId')
+    email = user_data.get('email')
+    full_name = user_data.get('fullName')
+    phone_number = user_data.get('phone')
+    company_name = user_data.get('company')
+    designation = user_data.get('designation')
+    industry = user_data.get('industry')
+    selected_courses = user_data.get('selectedCourses', {})
+    total_price = data.get('totalPrice', 0)
+    
+    if not email:
+        return JsonResponse({"message": "Email is required"}, status=400)
 
-    if not user.email:
-        return JsonResponse({"message": "User email not found"}, status=400)
+    try:
+        # Try to get existing user by email
+        user = User.objects.get(email=email)
+        # Update user details if they've changed
+        user.full_name = full_name
+        user.phone_number = phone_number
+        user.company_name = company_name
+        user.designation = designation
+        user.industry = industry
+        user.save()
+    except User.DoesNotExist:
+        # Create new user if doesn't exist
+        user = User(
+            full_name=full_name,
+            email=email,
+            phone_number=phone_number,
+            company_name=company_name,
+            designation=designation,
+            industry=industry
+        )
+        user.save()
     
     # Generate OTP
     otp = ''.join(random.choices(string.digits, k=6))
     
+    # Prepare context for email template
+    email_context = {
+        'otp': otp,
+        'full_name': full_name,
+        'email': email,
+        'phone_number': phone_number,
+        'company_name': company_name,
+        'designation': designation,
+        'industry': industry,
+        'total_price': total_price
+    }
+    
     # Send OTP via email
-    sms_response = send_sms(user.email, otp)
+    sms_response = send_sms(email, email_context)
+    
+    if sms_response["status"] != True:
+        return JsonResponse({"message": "Failed to send OTP"}, status=500)
     
     # Create or update billing record
     billing, created = Billing.objects.get_or_create(
         user=user,
         payment_status='pending',
         defaults={
-            'selected_courses': data.get('selected_courses', []),
-            'total_price': data.get('total_price', 0)
+            'selected_courses': selected_courses,
+            'total_price': total_price
         }
     )
     
     if not created:
-        billing.selected_courses = data.get('selected_courses', [])
-        billing.total_price = data.get('total_price', 0)
+        billing.selected_courses = selected_courses
+        billing.total_price = total_price
     
     billing.otp = otp
     billing.save()
     
     return JsonResponse({
         "message": "OTP sent successfully", 
-        "phone": f"{'*' * (len(user.email.split('@')[0]) - 2)}{user.email[-2:]}@{user.email.split('@')[1]}"
+        "phone": f"{'*' * (len(email.split('@')[0]) - 2)}{email[-2:]}@{email.split('@')[1]}"
     })
 
 @csrf_exempt
 @require_POST
 def verify_otp(request):
     data = json.loads(request.body)
-    user_id = data.get('userId')
-    print(data)
+    email = data.get('email')  # Get email from request data
+    user_id = data.get('user_id')  # Get user_id from request data
+    print('data ', data)
     
     try:
-        billing = Billing.objects.get(user_id=user_id)
-        print(billing.otp, data['otp'])
-        if billing.otp != data['otp']:
+        user = User.objects.get(email=email)
+        if user_id and str(user.id) != str(user_id):
+            return JsonResponse({"message": "User ID mismatch"}, status=400)
+            
+        billing = Billing.objects.filter(user=user, payment_status='pending').latest('id')
+        print('billing ', billing.otp, data['otp'])
+        sent_otp = data.get('otp')
+        if isinstance(sent_otp, dict):
+            sent_otp = sent_otp.get('otp')
+        print('sent_otp ', sent_otp)
+        if billing.otp != sent_otp:
             return JsonResponse({"message": "Invalid OTP"}, status=400)
         
         billing.is_verified = True
         billing.save()
-        return JsonResponse({"message": "OTP verified successfully"})
+        return JsonResponse({
+            "message": "OTP verified successfully",
+            "user": user.to_dict()
+        })
+    except User.DoesNotExist:
+        return JsonResponse({"message": "User not found"}, status=404)
     except Billing.DoesNotExist:
         return JsonResponse({"message": "No pending transaction found"}, status=404)
 

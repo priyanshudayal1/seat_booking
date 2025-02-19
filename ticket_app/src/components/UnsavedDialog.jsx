@@ -1,8 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 const UnsavedChangesDialog = ({ isOpen, onConfirm, onCancel, nextPath }) => {
-  const isPaymentNavigation = nextPath?.includes('/payment');
+  const isPaymentNavigation = nextPath?.includes("/cart");
 
   return (
     <AnimatePresence>
@@ -11,61 +11,111 @@ const UnsavedChangesDialog = ({ isOpen, onConfirm, onCancel, nextPath }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 backdrop-blur-[2px] bg-black/40 flex items-center justify-center z-50 p-3"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
         >
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 400 }}
-            className="bg-white rounded-xl p-5 max-w-sm w-full mx-auto relative shadow-xl border border-gray-100"
+            className="bg-white/90 backdrop-blur rounded-2xl p-8 max-w-md w-full mx-4 shadow-xl border border-white/20"
           >
-            <button
-              onClick={onCancel}
-              className="absolute right-3 top-3 p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <div className="flex flex-col items-center text-center space-y-4">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="relative"
+              >
+                {/* Outer ring animation */}
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{
+                    scale: [0, 1.2, 1],
+                    opacity: [0, 0.8, 1],
+                  }}
+                  transition={{
+                    duration: 0.8,
+                    ease: "easeOut",
+                    times: [0, 0.7, 1],
+                  }}
+                  className="absolute inset-0 w-16 h-16 rounded-full bg-yellow-500/10"
+                />
 
-            <div className="flex items-start space-x-3">
-              <div className="p-2 bg-yellow-50 rounded-full shadow-sm border border-yellow-100">
-                <AlertTriangle className="h-5 w-5 text-yellow-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                  {isPaymentNavigation ? 'Confirm Selection' : 'Unsaved Changes'}
-                </h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {isPaymentNavigation
-                    ? 'Do you want to confirm your current selections and proceed to payment?'
-                    : 'You have unsaved course selections. Do you want to keep your current selections and continue?'}
-                </p>
-                <div className="mt-6 flex space-x-3">
-                  <button
-                    onClick={() => {
-                      if (isPaymentNavigation) {
-                        // For payment navigation, maintain selections and proceed
-                        onConfirm();
-                      } else {
-                        // For other navigations, maintain current selections
-                        onConfirm();
-                      }
+                {/* Inner circle with alert icon */}
+                <motion.div className="relative w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center">
+                  <motion.div
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{
+                      delay: 0.2,
+                      duration: 0.8,
+                      ease: "easeInOut",
+                      opacity: { duration: 0.2 },
                     }}
-                    className="flex-1 px-5 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
-                    active:bg-blue-700 transition-colors duration-150 text-sm font-medium shadow-sm 
-                    hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   >
-                    {isPaymentNavigation ? 'Confirm & Proceed' : 'Keep & Continue'}
-                  </button>
-                  <button
-                    onClick={onCancel}
-                    className="flex-1 px-5 py-2.5 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 
-                    active:bg-gray-200 transition-colors duration-150 text-sm font-medium border border-gray-200
+                    <AlertTriangle className="w-10 h-10 text-yellow-600" />
+                  </motion.div>
+                </motion.div>
+
+                {/* Glowing effect */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 1, 0] }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                  }}
+                  className="absolute inset-0 w-16 h-16 rounded-full bg-yellow-500/20 blur-xl"
+                />
+              </motion.div>
+
+              <motion.h3
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-2xl font-bold text-gray-900"
+              >
+                {isPaymentNavigation ? "Confirm Selection" : "Unsaved Changes"}
+              </motion.h3>
+
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-gray-600"
+              >
+                {isPaymentNavigation
+                  ? "Do you want to confirm your current selections and proceed to payment?"
+                  : "You have unsaved course selections. Do you want to keep your current selections and continue?"}
+              </motion.p>
+
+              <div className="flex w-full space-x-3 mt-6">
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  onClick={onConfirm}
+                  className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white py-3 px-6 rounded-lg
+                    hover:from-yellow-600 hover:to-yellow-700 transition-all duration-200 
+                    shadow-lg shadow-yellow-500/25 font-medium"
+                >
+                  {isPaymentNavigation
+                    ? "Confirm & Proceed"
+                    : "Keep & Continue"}
+                </motion.button>
+
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  onClick={onCancel}
+                  className="flex-1 bg-white text-gray-700 py-3 px-6 rounded-lg border border-gray-200
+                    hover:bg-gray-50 transition-all duration-200 font-medium
                     focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                  >
-                    {isPaymentNavigation ? 'Review Selection' : 'Stay Here'}
-                  </button>
-                </div>
+                >
+                  {isPaymentNavigation ? "Review Selection" : "Stay Here"}
+                </motion.button>
               </div>
             </div>
           </motion.div>
