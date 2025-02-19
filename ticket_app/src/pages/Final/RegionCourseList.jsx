@@ -417,8 +417,8 @@ const RegionCourseList = () => {
                 onClick={() =>
                   navigate(
                     courseType
-                      ? `/dashboard/new-course-selection/${courseType}`
-                      : "/dashboard/courses"
+                      ? `/select-region/${courseType}`
+                      : "/select-region"
                   )
                 }
                 className="flex items-center justify-center h-10 px-4 rounded-lg 
