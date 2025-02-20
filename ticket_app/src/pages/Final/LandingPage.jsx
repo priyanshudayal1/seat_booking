@@ -179,7 +179,7 @@ const LandingPage = () => {
                     onClick={scrollToCourses}
                     className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    SStart Your Journey
+                    Start Your Journey
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </motion.div>
@@ -258,7 +258,7 @@ const LandingPage = () => {
                         className: `h-6 w-6 ${colorConfig.icon} group-hover:text-white`,
                       })}
                     </div>
-                    <h3 className="font-semibold text-xl mb-2 text-gray-800">
+                    <h3 className="font-semibold text-4xl mb-2 text-gray-800">
                       {course.name}
                     </h3>
                   </div>

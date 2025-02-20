@@ -88,7 +88,7 @@ const CourseStep = ({ course, seats, onSeatChange, onSelect, isSelected }) => (
           <div className="text-sm font-bold text-blue-600">
             {formatPrice(course.price_per_seat)}
           </div>
-          <div className="text-[10px] text-gray-500">per seat</div>
+          <div className="text-[10px] text-gray-500">per seat/year</div>
         </div>
       </div>
 
