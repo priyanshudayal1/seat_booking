@@ -9,8 +9,6 @@ import {
   MapPin,
   BookOpen,
   Trash2,
-  AlertTriangle,
-  X,
 } from "lucide-react";
 import useCourseSelection from "../../store/useCourseSelection";
 
@@ -83,59 +81,117 @@ const EmptyCart = () => (
 const WarningModal = ({ isOpen, onClose, onConfirm }) => (
   <AnimatePresence>
     {isOpen && (
-      <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      >
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.5 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black"
-          onClick={onClose}
-        />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.75 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.75 }}
-          className="fixed inset-0 flex items-center justify-center p-4 z-50"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.8, opacity: 0 }}
+          transition={{ type: "spring", damping: 25, stiffness: 400 }}
+          className="bg-white/90 backdrop-blur rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl border border-white/20"
         >
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full relative">
-            <button
-              onClick={onClose}
-              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+          <div className="flex flex-col items-center text-center space-y-3">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="relative"
             >
-              <X className="w-5 h-5" />
-            </button>
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-2 bg-amber-100 rounded-full">
-                <AlertTriangle className="w-6 h-6 text-amber-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                Clear Cart
-              </h3>
-            </div>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to clear your adoption cart? This action
-              cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
+              {/* Outer ring animation */}
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{
+                  scale: [0, 1.2, 1],
+                  opacity: [0, 0.8, 1],
+                }}
+                transition={{
+                  duration: 0.8,
+                  ease: "easeOut",
+                  times: [0, 0.7, 1],
+                }}
+                className="absolute inset-0 w-12 h-12 rounded-full bg-red-500/10"
+              />
+
+              {/* Inner circle with alert icon */}
+              <motion.div className="relative w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <motion.div
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{
+                    delay: 0.2,
+                    duration: 0.8,
+                    ease: "easeInOut",
+                    opacity: { duration: 0.2 },
+                  }}
+                >
+                  <Trash2 className="w-7 h-7 text-red-600" />
+                </motion.div>
+              </motion.div>
+
+              {/* Glowing effect */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                }}
+                className="absolute inset-0 w-12 h-12 rounded-full bg-red-500/20 blur-xl"
+              />
+            </motion.div>
+
+            <motion.h3
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-xl font-bold text-gray-900"
+            >
+              Clear Cart
+            </motion.h3>
+
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-sm text-gray-600"
+            >
+              Are you sure you want to clear your adoption cart? This action cannot be undone.
+            </motion.p>
+
+            <div className="flex w-full space-x-2 mt-4">
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
                 onClick={onClose}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
+                className="flex-1 bg-white text-gray-700 py-2 px-4 rounded-lg border border-gray-200
+                  hover:bg-gray-50 transition-all duration-200 font-medium text-sm
+                  focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
               >
                 Cancel
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
                 onClick={() => {
                   onConfirm();
                   onClose();
                 }}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 
+                  text-white py-2 px-4 rounded-lg shadow-lg shadow-red-500/25 
+                  transition-all duration-200 font-medium text-sm"
               >
                 Clear Cart
-              </button>
+              </motion.button>
             </div>
           </div>
         </motion.div>
-      </>
+      </motion.div>
     )}
   </AnimatePresence>
 );

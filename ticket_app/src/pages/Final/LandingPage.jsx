@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { toast } from "react-hot-toast";
 import {
   GraduationCap,
   MapPin,
@@ -12,8 +13,10 @@ import {
   ArrowRight,
   Globe,
 } from "lucide-react";
+import landingImage from "../../assets/landing.jpg";
 
 const LandingPage = () => {
+  const coursesRef = useRef(null);
   const { scrollY } = useScroll();
   const opacity = useTransform(scrollY, [0, 200], [1, 0]);
   const scale = useTransform(scrollY, [0, 200], [1, 0.95]);
@@ -45,6 +48,18 @@ const LandingPage = () => {
         stiffness: 100,
       },
     },
+  };
+
+  const scrollToCourses = () => {
+    toast.success("Please select a course to invest", {
+      icon: "🎓",
+      duration: 3000,
+    });
+
+    coursesRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   };
 
   return (
@@ -105,12 +120,86 @@ const LandingPage = () => {
               To adopt a student is to embrace their journey, foster their
               talents, and ignite their dreams.
             </motion.p>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed"
+            >
+              <button
+                onClick={scrollToCourses}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mt-8"
+              >
+                Start Your Journey
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </motion.div>
           </motion.div>
         </div>
       </motion.section>
 
+      {/* Image Card Section */}
+      <section className="py-16 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="container mx-auto max-w-6xl"
+        >
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            <div className="grid lg:grid-cols-2 gap-0">
+              <div className="p-8 lg:p-12 flex flex-col justify-center">
+                <motion.h2
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6"
+                >
+                  Transforming Education Through Partnership
+                </motion.h2>
+                <motion.p
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                  className="text-gray-600 text-lg leading-relaxed mb-8"
+                >
+                  Join us in shaping the future of technical education in Madhya
+                  Pradesh. Your investment in student seats creates
+                  opportunities that transform lives and builds a stronger
+                  tomorrow.
+                </motion.p>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <button
+                    onClick={scrollToCourses}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    SStart Your Journey
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </motion.div>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/20 to-transparent z-10" />
+                <img
+                  src={landingImage}
+                  alt="Education Initiative"
+                  className="w-full h-full object-cover object-center"
+                  style={{ maxHeight: "500px" }}
+                />
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
       {/* Existing Course Cards Section */}
-      <section className="p-4 lg:p-6">
+      <section ref={coursesRef} className="p-4 lg:p-6 scroll-mt-24">
         <motion.div
           initial="hidden"
           animate="visible"
@@ -314,21 +403,24 @@ const LandingPage = () => {
               className="absolute inset-0 bg-[url('data:image/svg+xml,...')] opacity-10"
             />
 
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">
-              Ready to Shape the Future?
-            </h2>
-            <p className="text-blue-100 mb-10 max-w-2xl mx-auto text-lg">
-              Join us in transforming education in Madhya Pradesh. Your
-              investment today creates tomorrow&apos;s leaders.
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-white text-blue-600 px-10 py-4 rounded-full text-lg font-semibold hover:bg-gray-50 transition-all shadow-xl flex items-center mx-auto space-x-3 group"
-            >
-              <span>Begin Your Investment Journey</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </motion.button>
+            <div className="relative z-10">
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">
+                Ready to Shape the Future?
+              </h2>
+              <p className="text-blue-100 mb-10 max-w-2xl mx-auto text-lg">
+                Join us in transforming education in Madhya Pradesh. Your
+                investment today creates tomorrow&apos;s leaders.
+              </p>
+              <motion.button
+                onClick={scrollToCourses}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-white text-blue-600 px-10 py-4 rounded-full text-lg font-semibold hover:bg-gray-50 transition-all shadow-xl flex items-center mx-auto space-x-3 group"
+              >
+                <span>Begin Your Investment Journey</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </motion.button>
+            </div>
           </div>
         </motion.div>
       </section>
