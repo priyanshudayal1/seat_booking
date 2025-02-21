@@ -86,7 +86,7 @@ const UnsavedChangesDialog = ({ isOpen, onConfirm, onCancel, nextPath }) => {
                 className="text-sm text-gray-600"
               >
                 {isPaymentNavigation
-                  ? "Do you want to confirm your current selections and proceed to payment?"
+                  ? "Do you want to confirm your current selections and proceed to lock?"
                   : "You have unsaved course selections. Do you want to keep your current selections and continue?"}
               </motion.p>
 

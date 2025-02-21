@@ -1,14 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  PDFDownloadLink,
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-} from "@react-pdf/renderer";
 import useCourseSelection from "../../store/useCourseSelection";
 import useRegisterStore from "../../store/useRegister";
 import {
@@ -23,9 +15,10 @@ import {
   UserCircle,
   Building2,
   CheckCircle,
-  Download,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import usePayment from "../../store/usePayment";
+import { titleCase } from "../../lib/utils";
 
 const formatPrice = (price) => {
   return new Intl.NumberFormat("en-IN", {
@@ -167,12 +160,15 @@ const CourseTable = ({ selections }) => (
         <thead className="bg-gray-50">
           <tr>
             <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Course
+              Course Details
             </th>
             <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Branch
+              Institute
             </th>
             <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Region
+            </th>
+            <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
               Seats
             </th>
             <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -187,16 +183,24 @@ const CourseTable = ({ selections }) => (
           {Object.entries(selections).map(([id, course]) => (
             <tr key={id} className="hover:bg-gray-50">
               <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap">
-                <div className="text-xs sm:text-sm font-medium text-gray-900">
-                  {course.courseName}
+                <div className="flex flex-col">
+                  <div className="text-xs sm:text-sm font-medium text-gray-900">
+                    {course.courseName}
+                  </div>
+                  <div className="text-xs text-gray-500">{titleCase(course.branch)}</div>
                 </div>
               </td>
               <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap">
-                <div className="text-xs sm:text-sm text-gray-500">
-                  {course.branch}
+                <div className="text-xs sm:text-sm text-gray-900">
+                  {titleCase(course.institute)}
                 </div>
               </td>
               <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap">
+                <div className="text-xs sm:text-sm text-gray-900">
+                  {titleCase(course.city)}
+                </div>
+              </td>
+              <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap text-center">
                 <div className="text-xs sm:text-sm text-gray-900">
                   {course.selectedSeats}
                 </div>
@@ -217,7 +221,7 @@ const CourseTable = ({ selections }) => (
         <tfoot className="bg-gray-50">
           <tr>
             <td
-              colSpan="4"
+              colSpan="5"
               className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 text-right font-medium text-gray-900"
             >
               Total Amount:
@@ -238,248 +242,6 @@ const CourseTable = ({ selections }) => (
       </table>
     </div>
   </div>
-);
-
-// Enhanced PDF Document Styles
-const pdfStyles = StyleSheet.create({
-  page: {
-    padding: 40,
-    backgroundColor: '#ffffff',
-    fontFamily: 'Helvetica',
-  },
-  header: {
-    marginBottom: 30,
-    borderBottom: 2,
-    borderBottomColor: '#e5e7eb',
-    paddingBottom: 20,
-  },
-  headerTitle: {
-    fontSize: 28,
-    color: '#1f2937',
-    textAlign: 'center',
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-  },
-  section: {
-    marginBottom: 30,
-    backgroundColor: '#ffffff',
-    padding: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    marginBottom: 16,
-    color: '#1f2937',
-    fontWeight: 'bold',
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  grid: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -10,
-  },
-  gridItem: {
-    width: '50%',
-    paddingHorizontal: 10,
-    marginBottom: 12,
-  },
-  fieldGroup: {
-    marginBottom: 8,
-  },
-  fieldLabel: {
-    fontSize: 11,
-    color: '#6b7280',
-    marginBottom: 4,
-    fontWeight: 'medium',
-  },
-  fieldValue: {
-    fontSize: 13,
-    color: '#111827',
-    fontWeight: 'medium',
-  },
-  table: {
-    width: '100%',
-    marginTop: 16,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#f9fafb',
-    borderBottomWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 12,
-  },
-  tableHeaderCell: {
-    color: '#6b7280',
-    fontSize: 11,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 12,
-  },
-  tableCell: {
-    fontSize: 12,
-    color: '#374151',
-  },
-  col1: { width: '35%' },
-  col2: { width: '25%' },
-  col3: { width: '20%' },
-  col4: { width: '20%', textAlign: 'right' },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    padding: 16,
-    backgroundColor: '#f9fafb',
-    borderTopWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  totalLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginRight: 12,
-  },
-  totalValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2563eb',
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
-    textAlign: 'center',
-    color: '#6b7280',
-    fontSize: 10,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  qrCode: {
-    position: 'absolute',
-    top: 40,
-    right: 40,
-    width: 64,
-    height: 64,
-  },
-  metaInfo: {
-    position: 'absolute',
-    bottom: 80,
-    left: 40,
-    right: 40,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    color: '#9ca3af',
-    fontSize: 9,
-  },
-});
-
-// Enhanced PDF Document Component
-const BillingSummary = ({ userData, courses }) => (
-  <Document>
-    <Page size="A4" style={pdfStyles.page}>
-      <View style={pdfStyles.header}>
-        <Text style={pdfStyles.headerTitle}>Adoption Summary</Text>
-        <Text style={pdfStyles.headerSubtitle}>Thank you for contributing to education</Text>
-      </View>
-
-      <View style={pdfStyles.section}>
-        <Text style={pdfStyles.sectionTitle}>Personal Information</Text>
-        <View style={pdfStyles.grid}>
-          <View style={pdfStyles.gridItem}>
-            <View style={pdfStyles.fieldGroup}>
-              <Text style={pdfStyles.fieldLabel}>Full Name</Text>
-              <Text style={pdfStyles.fieldValue}>{userData.fullName}</Text>
-            </View>
-          </View>
-          <View style={pdfStyles.gridItem}>
-            <View style={pdfStyles.fieldGroup}>
-              <Text style={pdfStyles.fieldLabel}>Designation</Text>
-              <Text style={pdfStyles.fieldValue}>{userData.designation}</Text>
-            </View>
-          </View>
-          <View style={pdfStyles.gridItem}>
-            <View style={pdfStyles.fieldGroup}>
-              <Text style={pdfStyles.fieldLabel}>Company</Text>
-              <Text style={pdfStyles.fieldValue}>{userData.company}</Text>
-            </View>
-          </View>
-          <View style={pdfStyles.gridItem}>
-            <View style={pdfStyles.fieldGroup}>
-              <Text style={pdfStyles.fieldLabel}>Industry</Text>
-              <Text style={pdfStyles.fieldValue}>{userData.industry}</Text>
-            </View>
-          </View>
-          <View style={pdfStyles.gridItem}>
-            <View style={pdfStyles.fieldGroup}>
-              <Text style={pdfStyles.fieldLabel}>Email</Text>
-              <Text style={pdfStyles.fieldValue}>{userData.email}</Text>
-            </View>
-          </View>
-          <View style={pdfStyles.gridItem}>
-            <View style={pdfStyles.fieldGroup}>
-              <Text style={pdfStyles.fieldLabel}>Phone</Text>
-              <Text style={pdfStyles.fieldValue}>{userData.phone}</Text>
-            </View>
-          </View>
-        </View>
-      </View>
-
-      <View style={pdfStyles.section}>
-        <Text style={pdfStyles.sectionTitle}>Adoption Details</Text>
-        <View style={pdfStyles.table}>
-          <View style={pdfStyles.tableHeader}>
-            <Text style={[pdfStyles.tableHeaderCell, pdfStyles.col1]}>Course</Text>
-            <Text style={[pdfStyles.tableHeaderCell, pdfStyles.col2]}>Branch</Text>
-            <Text style={[pdfStyles.tableHeaderCell, pdfStyles.col3]}>Seats</Text>
-            <Text style={[pdfStyles.tableHeaderCell, pdfStyles.col4]}>Amount</Text>
-          </View>
-          {Object.values(courses).map((course, index) => (
-            <View key={index} style={pdfStyles.tableRow}>
-              <Text style={[pdfStyles.tableCell, pdfStyles.col1]}>{course.courseName}</Text>
-              <Text style={[pdfStyles.tableCell, pdfStyles.col2]}>{course.branch}</Text>
-              <Text style={[pdfStyles.tableCell, pdfStyles.col3]}>{course.selectedSeats}</Text>
-              <Text style={[pdfStyles.tableCell, pdfStyles.col4]}>{formatPrice(course.totalPrice)}</Text>
-            </View>
-          ))}
-          <View style={pdfStyles.totalRow}>
-            <Text style={pdfStyles.totalLabel}>Total Amount:</Text>
-            <Text style={pdfStyles.totalValue}>
-              {formatPrice(
-                Object.values(courses).reduce(
-                  (total, course) => total + (parseFloat(course.totalPrice) || 0),
-                  0
-                )
-              )}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={pdfStyles.metaInfo}>
-        <Text>Generated on: {new Date().toLocaleDateString()}</Text>
-        <Text>Document ID: {Math.random().toString(36).substr(2, 9).toUpperCase()}</Text>
-      </View>
-
-      <Text style={pdfStyles.footer}>
-        This document serves as your official adoption confirmation. For any queries, please contact support.
-      </Text>
-    </Page>
-  </Document>
 );
 
 // Success Modal Component with enhanced animation
@@ -595,12 +357,12 @@ const LockSeats = () => {
   const [otp, setOtp] = useState("");
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
-  const pdfLinkRef = useRef(null);
 
   const selectedCourses = useCourseSelection((state) => state.selectedCourses);
   const reset = useCourseSelection((state) => state.reset);
   const { setUserDetails, sendOTP, verifyOTP, otpSent, loading } =
     useRegisterStore();
+  const { generateAndDownloadPDF } = usePayment((state) => state);
 
   useEffect(() => {
     if (Object.keys(selectedCourses).length === 0) {
@@ -710,25 +472,41 @@ const LockSeats = () => {
 
     if (success) {
       toast.dismiss(loadingToast);
-      toast.loading("Preparing your adoption summary...", { duration: 1500 });
+      const summaryToastId = toast.loading("Preparing your adoption summary...");
 
-      // Ensure PDF is ready and downloaded
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Force download programmatically
-      if (pdfLinkRef.current) {
-        const event = new MouseEvent("click", {
-          view: window,
-          bubbles: true,
-          cancelable: true,
+      try {
+        // Prepare selected courses with all required details
+        const formattedCourses = {};
+        Object.entries(selectedCourses).forEach(([id, course]) => {
+          formattedCourses[id] = {
+            ...course,
+            totalPrice: parseFloat(course.totalPrice),
+            pricePerSeat: parseFloat(course.pricePerSeat),
+            institute: course.institute || "",
+            city: course.city || "",
+            branch: course.branch || "",
+            courseName: course.courseName || "",
+          };
         });
-        pdfLinkRef.current.dispatchEvent(event);
 
-        // Wait for download to start before showing success modal
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await generateAndDownloadPDF(
+          {
+            ...formData,
+            industry: formData.industry || "",
+          },
+          formattedCourses
+        );
+
+        toast.dismiss(summaryToastId);
+        toast.success("Adoption summary downloaded successfully!");
         setShowSuccessModal(true);
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+        toast.dismiss(summaryToastId);
+        toast.error("Failed to generate PDF. Please try again.");
       }
     }
+
     setIsProcessing(false);
   };
 
@@ -811,7 +589,7 @@ const LockSeats = () => {
 
   return (
     <div className="min-h-screen w-full bg-gray-50">
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+      <div className="max-w-8xl mx-auto p-4 sm:p-6 lg:p-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -961,65 +739,12 @@ const LockSeats = () => {
               </div>
             )}
           </div>
-
-          {otpSent && (
-            <div className="mt-6">
-              <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-shadow">
-                <PDFDownloadLink
-                  document={
-                    <BillingSummary
-                      userData={formData}
-                      courses={selectedCourses}
-                    />
-                  }
-                  fileName="adoption_summary.pdf"
-                  className="flex items-center justify-between w-full"
-                >
-                  {({ loading }) => (
-                    <>
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-50 rounded-lg">
-                          <Download className="h-5 w-5 text-blue-500" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">
-                            Download Summary
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            PDF document with your adoption details
-                          </span>
-                        </div>
-                      </div>
-                      {loading ? (
-                        <Loader2 className="animate-spin h-5 w-5 text-blue-500" />
-                      ) : (
-                        <ArrowLeft className="h-5 w-5 text-gray-400 rotate-180" />
-                      )}
-                    </>
-                  )}
-                </PDFDownloadLink>
-              </div>
-            </div>
-          )}
         </motion.div>
       </div>
 
       <AnimatePresence>
         {showSuccessModal && <SuccessModal onClose={handleCloseSuccessModal} />}
       </AnimatePresence>
-
-      {/* Hidden PDF download link */}
-      <div className="hidden">
-        <PDFDownloadLink
-          ref={pdfLinkRef}
-          document={
-            <BillingSummary userData={formData} courses={selectedCourses} />
-          }
-          fileName="adoption_summary.pdf"
-        >
-          {() => null}
-        </PDFDownloadLink>
-      </div>
     </div>
   );
 };

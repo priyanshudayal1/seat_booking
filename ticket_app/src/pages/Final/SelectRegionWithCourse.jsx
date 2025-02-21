@@ -4,6 +4,7 @@ import { MapPin, Check, ChevronLeft, AlertCircle, MapIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import useCourseSelection from "../../store/useCourseSelection";
 import StateMap from "../Dashboard/Map";
+import { titleCase } from "../../lib/utils";
 
 const LoadingState = () => (
   <div className="min-h-screen bg-gray-50 p-4">
@@ -23,7 +24,7 @@ const CourseStep = ({ course, onSelect, isSelected }) => (
     <div className="flex flex-col gap-4">
       <div className="space-y-3">
         <h3 className="text-lg font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
-          {course.branch}
+          {titleCase(course.branch)}
         </h3>
         <div className="flex items-center flex-wrap gap-2">
           <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm font-medium">

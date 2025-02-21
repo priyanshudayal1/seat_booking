@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { titleCase } from "../../lib/utils";
 import {
   ChevronRight,
   ShoppingCart,
@@ -35,15 +36,15 @@ const CourseCard = ({ course }) => (
   <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
     <div className="flex justify-between items-start">
       <div>
-        <h4 className="font-medium text-gray-900 text-sm">{course.branch}</h4>
+        <h4 className="font-medium text-gray-900 text-sm">{titleCase(course.branch)}</h4>
         <p className="text-xs text-gray-500 mt-0.5">{course.courseName}</p>
         <div className="flex items-center mt-1.5 space-x-1.5">
           <Building2 className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-xs text-gray-600">{course.institute}</span>
+          <span className="text-xs text-gray-600">{titleCase(course.institute)}</span>
         </div>
         <div className="flex items-center mt-1 space-x-1.5">
           <MapPin className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-xs text-gray-600">{course.city}</span>
+          <span className="text-xs text-gray-600">{titleCase(course.city)}</span>
         </div>
       </div>
       <div className="text-right">

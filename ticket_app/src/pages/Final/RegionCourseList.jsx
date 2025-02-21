@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import UnsavedChangesDialog from "../../components/UnsavedDialog";
 import useCourseSelection from "../../store/useCourseSelection";
+import { titleCase } from "../../lib/utils";
 
 const formatPrice = (price) => {
   return parseFloat(price).toLocaleString("en-IN", {
@@ -75,7 +76,7 @@ const CourseStep = ({ course, seats, onSeatChange, onSelect, isSelected }) => (
           </motion.label>
           <div>
             <h3 className="text-xs font-semibold text-gray-800">
-              {course.branch}
+              {titleCase(course.branch)}
             </h3>
             <div className="flex items-center gap-1 mt-0.5">
               <span className="px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded-full text-[10px] font-medium">
@@ -256,7 +257,7 @@ const RegionCourseList = () => {
 
     return cityCourses.reduce((acc, course) => {
       console.log("redunce", course);
-      const institute = course.institute_name || "Other Institutes"; // Using institute_name instead of institute
+      const institute = titleCase(course.institute_name) || "Other Institutes"; // Using institute_name instead of institute
       if (!acc[institute]) {
         acc[institute] = [];
       }
@@ -333,10 +334,10 @@ const RegionCourseList = () => {
           selectedSeats: parseInt(value.seats),
           pricePerSeat: parseFloat(course.price_per_seat),
           totalPrice: parseInt(value.seats) * parseFloat(course.price_per_seat),
-          branch: course.branch,
+          branch: titleCase(course.branch),
           courseName: course.course_name,
           city: course.city,
-          institute: course.institute_name || "Other Institutes",
+          institute: titleCase(course.institute_name) || "Other Institutes",
         };
         return acc;
       }, {});

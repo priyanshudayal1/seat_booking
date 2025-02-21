@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password, check_password
 from django.template.loader import render_to_string
@@ -13,6 +13,8 @@ import string
 import requests
 import os
 from .models import Course
+import pdfkit
+from datetime import datetime
 
 @csrf_exempt
 def register(request):
@@ -630,6 +632,10 @@ import csv
 @csrf_exempt
 def populate_initial_data(request):
     try:
+        courses = Course.objects.all()
+        if courses:
+            courses.delete()
+            
         csv_file_path = os.path.join(os.path.dirname(__file__), 'final.csv')
         
         # Mapping for course name conversion from "Types of Institute"
@@ -676,9 +682,9 @@ def populate_initial_data(request):
                 
                 new_course = Course(
                     course_name=course_name,
-                    branch=branch,
-                    city=city,
-                    institute_name=institute_name,
+                    branch=branch.title(),
+                    city=city.title(),
+                    institute_name=institute_name.title(),
                     total_seats=total_seats,
                     locked_seats=0,
                     left_seats=left_seats,
@@ -690,3 +696,202 @@ def populate_initial_data(request):
     except Exception as e:
         print(f"Error occurred: {str(e)}")
         return JsonResponse({"message": f"Error: {str(e)}", "error_type": type(e).__name__}, status=500)
+
+@csrf_exempt
+def generate_pdf(request):
+    try:
+        data = json.loads(request.body)
+        user_data = data.get('userData', {})
+        selected_courses = data.get('selectedCourses', {})
+
+        # Format courses data for template with region grouping
+        courses_by_region = {}
+        total_amount = 0
+
+        # Handle courses data whether it's a dictionary or list
+        if isinstance(selected_courses, dict):
+            for course_id, course in selected_courses.items():
+                amount = float(course.get('totalPrice', 0))
+                region = course.get('city', '')
+                
+                if region not in courses_by_region:
+                    courses_by_region[region] = {
+                        'courses': [],
+                        'region_total': 0
+                    }
+
+                courses_by_region[region]['courses'].append({
+                    'course_name': course.get('courseName'),
+                    'institute_name': course.get('institute', ''),
+                    'city': course.get('city', ''),
+                    'branch': course.get('branch'),
+                    'seats': course.get('selectedSeats'),
+                    'price_per_seat': float(course.get('pricePerSeat', 0)),
+                    'amount': amount
+                })
+                courses_by_region[region]['region_total'] += amount
+                total_amount += amount
+
+        # Group courses by course name within each region
+        course_groups = {}
+        for region, data in courses_by_region.items():
+            for course in data['courses']:
+                course_name = course['course_name']
+                if course_name not in course_groups:
+                    course_groups[course_name] = {
+                        'regions': {},
+                        'total': 0
+                    }
+                if region not in course_groups[course_name]['regions']:
+                    course_groups[course_name]['regions'][region] = {
+                        'courses': [],
+                        'total': 0
+                    }
+                course_groups[course_name]['regions'][region]['courses'].append(course)
+                course_groups[course_name]['regions'][region]['total'] += course['amount']
+                course_groups[course_name]['total'] += course['amount']
+
+        # Prepare context for template
+        context = {
+            'name': user_data.get('fullName'),
+            'designation': user_data.get('designation'),
+            'company': user_data.get('company'),
+            'industry': user_data.get('industry'),
+            'amount': f"₹{total_amount:,.2f}",
+            'course_groups': course_groups,
+            'date': datetime.now().strftime('%d-%m-%Y'),
+            'document_id': f"ADT-{datetime.now().strftime('%Y%m%d')}-{os.urandom(4).hex().upper()}"
+        }
+
+        # Render HTML
+        html_content = render_to_string('ticket_generated.html', context)
+
+        # PDF generation options with improved styling support
+        options = {
+            'page-size': 'A4',
+            'margin-top': '0.75in',
+            'margin-right': '0.75in',
+            'margin-bottom': '0.75in',
+            'margin-left': '0.75in',
+            'encoding': "UTF-8",
+            'no-outline': None,
+            'enable-local-file-access': None,
+            'print-media-type': None,
+            'enable-smart-shrinking': None,
+            'dpi': '300',
+            'load-error-handling': 'ignore',
+            'custom-header': [
+                ('Accept-Encoding', 'gzip')
+            ],
+            'javascript-delay': '1000',
+            'load-media-error-handling': 'ignore',
+            'enable-external-links': True,
+            'enable-internal-links': True,
+            'images': True,
+            'quiet': None,
+            'footer-spacing': '5',
+            'minimum-font-size': '8'
+        }
+
+        # Configure wkhtmltopdf path based on environment
+        if os.name == 'nt':  # Windows
+            config = pdfkit.configuration(wkhtmltopdf=r"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe")
+        else:  # Linux/Unix
+            config = pdfkit.configuration(wkhtmltopdf=r"/usr/bin/wkhtmltopdf")
+
+        # Generate PDF with improved configuration and include stylesheet
+        css_path = os.path.join(os.path.dirname(__file__), 'static', 'ticket.css')
+        pdf = pdfkit.from_string(
+            html_content, 
+            False,
+            options=options,
+            css=css_path,
+            configuration=config
+        )
+
+        # Create response with a more descriptive filename
+        filename = f"SSRGSP_Adoption_Certificate_{datetime.now().strftime('%Y%m%d')}_{user_data.get('fullName', 'User').replace(' ', '_')}.pdf"
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+    except Exception as e:
+        print(f"Error generating PDF: {str(e)}")
+        return JsonResponse({
+            "message": "Failed to generate PDF", 
+            "error": str(e)
+        }, status=500)
+        
+        
+def test(request):
+    context = {
+        'name': 'John Doe',
+        'designation': 'Software Engineer',
+        'company': 'Acme Corporation',
+        'industry': 'Software Development',
+        'amount': '₹1,25,000.00',   
+        'course_groups': {
+            'B.Tech': {
+                'regions': {
+                    'Delhi': {
+                        'courses': [
+                            {
+                                'course_name': 'B.Tech',
+                                'institute_name': 'ABC Institute',
+                                'city': 'Delhi',
+                                'branch': 'Computer Science',
+                                'seats': 2,
+                                'price_per_seat': 25000,
+                                'amount': 50000
+                            },
+                            {
+                                'course_name': 'B.Tech',
+                                'institute_name': 'XYZ Institute',
+                                'city': 'Delhi',
+                                'branch': 'Electronics',
+                                'seats': 3,
+                                'price_per_seat': 25000,
+                                'amount': 75000
+                            }
+                        ],
+                        'total': 125000
+                    },
+                    'Mumbai': {
+                        'courses': [
+                            {
+                                'course_name': 'B.Tech',
+                                'institute_name': 'MNO Institute',
+                                'city': 'Mumbai',
+                                'branch': 'Mechanical',
+                                'seats': 1,
+                                'price_per_seat': 25000,
+                                'amount': 25000
+                            }
+                        ],
+                        'total': 25000
+                    }
+                },
+                'total': 150000
+            },
+            'Diploma': {
+                'regions': {
+                    'Delhi': {
+                        'courses': [
+                            {
+                                'course_name': 'Diploma',
+                                'institute_name': 'PQR Institute',
+                                'city': 'Delhi',
+                                'branch': 'Civil',
+                                'seats': 2,
+                                'price_per_seat': 15000,
+                                'amount': 30000
+                            }
+                        ],
+                        'total': 30000
+                    }
+                },
+                'total': 30000
+            }
+        },
+    }
+    return render(request, 'ticket_generated.html')

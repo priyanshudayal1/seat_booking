@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { toast } from "react-hot-toast";
 import {
-  GraduationCap,
   MapPin,
   Users,
   BookOpen,
@@ -14,6 +13,8 @@ import {
   Globe,
 } from "lucide-react";
 import landingImage from "../../assets/landing.jpg";
+import AboutTeam from "../../components/AboutTeam";
+import logo from "../../assets/logo.png";
 
 const LandingPage = () => {
   const coursesRef = useRef(null);
@@ -76,9 +77,13 @@ const LandingPage = () => {
             className="flex items-center space-x-3"
             whileHover={{ scale: 1.05 }}
           >
-            <GraduationCap className="w-8 h-8 text-blue-600" />
+            <img
+              src={logo}
+              alt="GSP Logo"
+              className="w-10 h-10 object-contain"
+            />
             <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-              Global Investor Summit
+              Global Skills Park
             </span>
           </motion.div>
         </div>
@@ -97,7 +102,7 @@ const LandingPage = () => {
             className="space-y-8"
           >
             <h1 className="text-7xl font-bold text-gray-900 leading-tight">
-              Empower the Future:
+              Empower the Future
               <motion.span
                 initial={{ backgroundPosition: "200% 0" }}
                 animate={{ backgroundPosition: "0 0" }}
@@ -117,8 +122,10 @@ const LandingPage = () => {
               transition={{ delay: 0.5 }}
               className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed"
             >
-              To adopt a student is to embrace their journey, foster their
-              talents, and ignite their dreams.
+              <span>Invest in the training of your future employee</span> <br />
+              <span>
+                Collaborate with us to align the training with your requirement
+              </span>
             </motion.p>
             <motion.div
               initial={{ opacity: 0 }}
@@ -425,6 +432,9 @@ const LandingPage = () => {
         </motion.div>
       </section>
 
+      {/* Team Section */}
+      <AboutTeam onInvestClick={scrollToCourses} />
+
       {/* Enhanced Footer */}
       <footer className="bg-gray-900 text-gray-400 py-16 px-4">
         <motion.div
@@ -441,14 +451,14 @@ const LandingPage = () => {
               <Globe className="w-10 h-10 text-blue-400" />
             </motion.div>
             <h3 className="text-2xl font-bold text-white">
-              Global Investor Summit
+              Global Skills Park
             </h3>
             <p className="text-gray-400 text-center max-w-md">
               Transforming education through strategic investments
             </p>
             <div className="h-px w-24 bg-gray-800 my-6"></div>
             <p className="text-sm text-gray-500">
-              © 2025 Global Investor Summit. All rights reserved.
+              © 2025 Global Skills Park. All rights reserved.
             </p>
           </div>
         </motion.div>
