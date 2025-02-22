@@ -39,6 +39,7 @@ const useRegisterStore = create((set) => ({
   },
 
   sendOTP: async (email) => {
+    console.log("Email:", email);
     set({ loading: true, error: null });
     try {
       await axios.post(`${API_URL}/user/generate-otp`, { email });

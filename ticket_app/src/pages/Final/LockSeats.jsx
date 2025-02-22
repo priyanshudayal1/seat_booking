@@ -89,6 +89,61 @@ const OTPInput = ({ value, onChange, disabled }) => {
   );
 };
 
+const OTPMethodSelector = ({ selected, onChange }) => (
+  <div className="flex flex-col space-y-4 mb-6">
+    <h3 className="text-sm font-medium text-gray-700">
+      Select OTP Delivery Method
+    </h3>
+    <div className="flex items-center space-x-6">
+      <label className="flex items-center space-x-2 cursor-pointer group">
+        <div className="relative">
+          <input
+            type="radio"
+            className="hidden"
+            checked={selected === "email"}
+            onChange={() => onChange("email")}
+          />
+          <div
+            className={`w-5 h-5 border-2 rounded-full ${
+              selected === "email"
+                ? "border-blue-500 bg-blue-500"
+                : "border-gray-300 group-hover:border-blue-400"
+            }`}
+          >
+            {selected === "email" && (
+              <div className="absolute inset-1 bg-white rounded-full" />
+            )}
+          </div>
+        </div>
+        <span className="text-sm text-gray-700">Email</span>
+      </label>
+
+      <label className="flex items-center space-x-2 cursor-pointer group">
+        <div className="relative">
+          <input
+            type="radio"
+            className="hidden"
+            checked={selected === "phone"}
+            onChange={() => onChange("phone")}
+          />
+          <div
+            className={`w-5 h-5 border-2 rounded-full ${
+              selected === "phone"
+                ? "border-blue-500 bg-blue-500"
+                : "border-gray-300 group-hover:border-blue-400"
+            }`}
+          >
+            {selected === "phone" && (
+              <div className="absolute inset-1 bg-white rounded-full" />
+            )}
+          </div>
+        </div>
+        <span className="text-sm text-gray-700">Phone</span>
+      </label>
+    </div>
+  </div>
+);
+
 const FormField = ({
   icon: Icon,
   label,
@@ -187,7 +242,9 @@ const CourseTable = ({ selections }) => (
                   <div className="text-xs sm:text-sm font-medium text-gray-900">
                     {course.courseName}
                   </div>
-                  <div className="text-xs text-gray-500">{titleCase(course.branch)}</div>
+                  <div className="text-xs text-gray-500">
+                    {titleCase(course.branch)}
+                  </div>
                 </div>
               </td>
               <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap">
@@ -357,6 +414,7 @@ const LockSeats = () => {
   const [otp, setOtp] = useState("");
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [otpMethod, setOtpMethod] = useState("email");
 
   const selectedCourses = useCourseSelection((state) => state.selectedCourses);
   const reset = useCourseSelection((state) => state.reset);
@@ -436,6 +494,16 @@ const LockSeats = () => {
     e.preventDefault();
     if (!isFormValid()) return;
 
+    const requiredField = otpMethod === "email" ? "email" : "phone";
+    if (!formData[requiredField]) {
+      toast.error(
+        `${
+          requiredField === "email" ? "Email" : "Phone number"
+        } is required for OTP verification`
+      );
+      return;
+    }
+
     setIsProcessing(true);
     setUserDetails(formData);
 
@@ -446,11 +514,14 @@ const LockSeats = () => {
         (total, course) => total + (parseFloat(course.totalPrice) || 0),
         0
       ),
+      otpMethod, // Make sure otpMethod is included
     };
 
     const success = await sendOTP(userData);
     if (success) {
-      toast.success("OTP sent to your email!");
+      toast.success(
+        `OTP sent to your ${otpMethod === "email" ? "email" : "phone number"}!`
+      );
     }
     setIsProcessing(false);
   };
@@ -467,12 +538,16 @@ const LockSeats = () => {
     const success = await verifyOTP({
       otp,
       email: formData.email,
+      phone: formData.phone,
+      otpMethod, // Include otpMethod in verification
       user_id: formData.userId,
     });
 
     if (success) {
       toast.dismiss(loadingToast);
-      const summaryToastId = toast.loading("Preparing your adoption summary...");
+      const summaryToastId = toast.loading(
+        "Preparing your adoption summary..."
+      );
 
       try {
         // Prepare selected courses with all required details
@@ -627,6 +702,11 @@ const LockSeats = () => {
                   </p>
                 </div>
 
+                <OTPMethodSelector
+                  selected={otpMethod}
+                  onChange={setOtpMethod}
+                />
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {formFields.map((field) => (
                     <FormField
@@ -715,6 +795,7 @@ const LockSeats = () => {
                               0
                             ),
                             isResend: true,
+                            otpMethod,
                           };
                           sendOTP(resendData);
                         }}

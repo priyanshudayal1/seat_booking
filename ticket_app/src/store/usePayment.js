@@ -1,10 +1,11 @@
 import { create } from "zustand";
 import api from "../lib/api";
 
-
 const usePayment = create((set) => ({
   loading: false,
   error: null,
+  otpMethod: 'email', // Default to email
+  setOtpMethod: (method) => set({ otpMethod: method }),
   generateAndDownloadPDF: async (userData, selectedCourses) => {
     try {
       set({ loading: true, error: null });

@@ -16,6 +16,59 @@ from .models import Course
 import pdfkit
 from datetime import datetime
 
+def send_sms_via_fast2sms(phone_number, otp, name):
+    import urllib.parse
+    url = "https://www.fast2sms.com/dev/bulkV2"
+    
+    phone_number = str(phone_number).strip()
+    message = f"Dear {name}, Your OTP for seat(s) adoption is: {otp}. Do not share this with anyone."
+    
+    # URL-encode the message and otp (variables_values)
+    encoded_message = urllib.parse.quote_plus(message)
+    encoded_variables = urllib.parse.quote_plus(str(otp))
+    
+    # Build payload as a form-encoded string for a single number only
+    payload = f"sender_id=FTWSMS&message={encoded_message}&variables_values={encoded_variables}&route=dlt&numbers={phone_number}"
+    
+    headers = {
+        "authorization": "va6ZfC7lpqmRAMOcwKJQ1tNruWyFL5hS4nIB0kjdTPXsYb9EGUTOvtd8DZQj5IroB07a3gJ2AuXV9lPi",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Cache-Control": "no-cache",
+    }
+    
+    try:
+        response = requests.post(url, data=payload, headers=headers)
+        
+        if not response.text.strip():
+            if response.status_code == 200:
+                print(f"SMS sent successfully to {phone_number} - empty response but status 200")
+                return {"status": True, "message": "SMS sent successfully"}
+            else:
+                print(f"Empty response received from SMS API for {phone_number}")
+                return {"status": False, "message": "No response from SMS service"}
+                
+        try:
+            response_data = response.json()
+            print("response_data", response_data)
+        except ValueError as json_err:
+            print(f"Invalid JSON response from SMS API: {response.text}")
+            return {"status": False, "message": f"Invalid response from SMS service: {str(json_err)}"}
+        
+        if response.status_code == 200 and response_data.get("return") is True:
+            print(f"SMS sent successfully to {phone_number}")
+            return {"status": True, "message": "SMS sent successfully"}
+        else:
+            error_msg = response_data.get("message", "Unknown error occurred")
+            print(f"SMS API error: {error_msg}")
+            return {"status": False, "message": f"Failed to send SMS: {error_msg}"}
+    
+    except requests.RequestException as e:
+        print(f"SMS sending request failed: {str(e)}")
+        return {"status": False, "message": f"Failed to connect to SMS service: {str(e)}"}
+    except Exception as e:
+        print(f"Unexpected error in SMS sending: {str(e)}")
+        return {"status": False, "message": f"Unexpected error: {str(e)}"}
+
 @csrf_exempt
 def register(request):
     if request.method == 'POST':
@@ -91,7 +144,7 @@ from django.template import Template, Context
 # ...existing imports...
 
 def send_sms(email, context):
-    subject = "Your OTP Code - Ticket App"
+    subject = "Your OTP Code - Global Skills Park"
     email_template = """
 <!DOCTYPE html>
 <html>
@@ -221,7 +274,7 @@ def send_sms(email, context):
             </div>
         </div>
 
-        <p class="warning">This OTP will expire in 10 minutes. Please do not share this OTP with anyone.</p>
+        <p class="warning">Please do not share this OTP with anyone.</p>
 
         <div class="footer">
             This is an automated message. Please do not reply to this email.
@@ -253,46 +306,55 @@ def send_sms(email, context):
 def generate_otp(request):
     data = json.loads(request.body)
     print('data ', data)
-    # Extract user details from the request
+    
+    # Extract user details and OTP method from the request
     user_data = data.get('email', {})
-    is_resend = data.get('isResend', False)  # Check if this is a resend request
+    is_resend = data.get('isResend', False)  
+    otp_method = user_data.get('otpMethod', 'email')  # Get OTP method from request
+    print('otp_method ', otp_method)
     
     if is_resend:
-        # For resend, we only need email to regenerate OTP
-        email = user_data
+        contact = user_data
         try:
-            # Try to get existing billing record
-            billing = Billing.objects.get(user__email=email, payment_status='pending')
+            # Find billing based on the contact method used
+            billing = Billing.objects.get(
+                user__email=contact if otp_method == 'email' else None,
+                user__phone_number=contact if otp_method == 'phone' else None,
+                payment_status='pending'
+            )
             user = billing.user
-            
-            # Generate new OTP
             otp = ''.join(random.choices(string.digits, k=6))
-            
-            # Update the OTP in billing record
             billing.otp = otp
             billing.save()
             
-            # Prepare context for email template
-            email_context = {
-                'otp': otp,
-                'full_name': user.full_name,
-                'email': user.email,
-                'phone_number': user.phone_number,
-                'company_name': user.company_name,
-                'designation': user.designation,
-                'industry': user.industry,
-                'total_price': billing.total_price
-            }
+            if otp_method == 'email':
+                email_context = {
+                    'otp': otp,
+                    'full_name': user.full_name,
+                    'email': user.email,
+                    'phone_number': user.phone_number,
+                    'company_name': user.company_name,
+                    'designation': user.designation,
+                    'industry': user.industry,
+                    'total_price': billing.total_price
+                }
+                response = send_sms(contact, email_context)
+            else:
+                print('sending sms')
+                response = send_sms_via_fast2sms(contact, otp, user.full_name)
             
-            # Send OTP via email
-            sms_response = send_sms(email, email_context)
+            if not response["status"]:
+                return JsonResponse({"message": f"Failed to send OTP: {response['message']}"}, status=500)
             
-            if sms_response["status"] != True:
-                return JsonResponse({"message": "Failed to send OTP"}, status=500)
-            
+            # Mask the contact information based on the method used
+            masked_contact = (
+                f"{'*' * (len(contact.split('@')[0]) - 2)}{contact[-2:]}@{contact.split('@')[1]}"
+                if otp_method == 'email'
+                else f"{'*' * 6}{contact[-4:]}"
+            )
             return JsonResponse({
                 "message": "OTP resent successfully",
-                "phone": f"{'*' * (len(email.split('@')[0]) - 2)}{email[-2:]}@{email.split('@')[1]}"
+                "contact": masked_contact
             })
             
         except Billing.DoesNotExist:
@@ -300,95 +362,119 @@ def generate_otp(request):
         except Exception as e:
             return JsonResponse({"message": str(e)}, status=500)
     
-    # Regular OTP generation flow for new requests
+    # Regular OTP generation flow
     user_id = user_data.get('userId')
     email = user_data.get('email')
+    phone = user_data.get('phone')
     full_name = user_data.get('fullName')
-    phone_number = user_data.get('phone')
     company_name = user_data.get('company')
     designation = user_data.get('designation')
     industry = user_data.get('industry')
     selected_courses = user_data.get('selectedCourses', {})
     total_price = data.get('totalPrice', 0)
     
-    if not email:
-        return JsonResponse({"message": "Email is required"}, status=400)
+    # Validate required fields based on OTP method
+    if otp_method == 'email' and not email:
+        return JsonResponse({"message": "Email is required for email OTP"}, status=400)
+    if otp_method == 'phone' and not phone:
+        return JsonResponse({"message": "Phone number is required for SMS OTP"}, status=400)
 
     try:
-        # Try to get existing user by email
-        user = User.objects.get(email=email)
-        # Update user details if they've changed
-        user.full_name = full_name
-        user.phone_number = phone_number
-        user.company_name = company_name
-        user.designation = designation
-        user.industry = industry
+        # Try to get existing user or create new one
+        try:
+            if otp_method == 'email':
+                user = User.objects.get(email=email)
+            else:
+                user = User.objects.get(phone_number=phone)
+            # Update user details
+            user.full_name = full_name
+            user.phone_number = phone if phone else user.phone_number
+            user.email = email if email else user.email
+            user.company_name = company_name
+            user.designation = designation
+            user.industry = industry
+        except User.DoesNotExist:
+            # Create new user
+            user = User(
+                full_name=full_name,
+                email=email,
+                phone_number=phone,
+                company_name=company_name,
+                designation=designation,
+                industry=industry
+            )
         user.save()
-    except User.DoesNotExist:
-        # Create new user if doesn't exist
-        user = User(
-            full_name=full_name,
-            email=email,
-            phone_number=phone_number,
-            company_name=company_name,
-            designation=designation,
-            industry=industry
+        
+        otp = ''.join(random.choices(string.digits, k=6))
+        
+        # Send OTP based on selected method
+        if otp_method == 'email':
+            email_context = {
+                'otp': otp,
+                'full_name': full_name,
+                'email': email,
+                'phone_number': phone,
+                'company_name': company_name,
+                'designation': designation,
+                'industry': industry,
+                'total_price': total_price
+            }
+            response = send_sms(email, email_context)
+        else:
+            response = send_sms_via_fast2sms(phone, otp, full_name)
+        
+        if not response["status"]:
+            return JsonResponse({"message": f"Failed to send OTP: {response['message']}"}, status=500)
+        
+        billing, created = Billing.objects.get_or_create(
+            user=user,
+            payment_status='pending',
+            defaults={
+                'selected_courses': selected_courses,
+                'total_price': total_price
+            }
         )
-        user.save()
-    
-    # Generate OTP
-    otp = ''.join(random.choices(string.digits, k=6))
-    
-    # Prepare context for email template
-    email_context = {
-        'otp': otp,
-        'full_name': full_name,
-        'email': email,
-        'phone_number': phone_number,
-        'company_name': company_name,
-        'designation': designation,
-        'industry': industry,
-        'total_price': total_price
-    }
-    
-    # Send OTP via email
-    sms_response = send_sms(email, email_context)
-    
-    if sms_response["status"] != True:
-        return JsonResponse({"message": "Failed to send OTP"}, status=500)
-    
-    # Create or update billing record
-    billing, created = Billing.objects.get_or_create(
-        user=user,
-        payment_status='pending',
-        defaults={
-            'selected_courses': selected_courses,
-            'total_price': total_price
-        }
-    )
-    
-    if not created:
-        billing.selected_courses = selected_courses
-        billing.total_price = total_price
-    
-    billing.otp = otp
-    billing.save()
-    
-    return JsonResponse({
-        "message": "OTP sent successfully", 
-        "phone": f"{'*' * (len(email.split('@')[0]) - 2)}{email[-2:]}@{email.split('@')[1]}"
-    })
+        
+        if not created:
+            billing.selected_courses = selected_courses
+            billing.total_price = total_price
+        
+        billing.otp = otp
+        billing.save()
+        
+        # Mask contact based on OTP method
+        contact = email if otp_method == 'email' else phone
+        masked_contact = (
+            f"{'*' * (len(contact.split('@')[0]) - 2)}{contact[-2:]}@{contact.split('@')[1]}"
+            if otp_method == 'email'
+            else f"{'*' * 6}{contact[-4:]}"
+        )
+        
+        return JsonResponse({
+            "message": "OTP sent successfully", 
+            "contact": masked_contact
+        })
+        
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return JsonResponse({"message": str(e)}, status=500)
 
 @csrf_exempt
 @require_POST
 def verify_otp(request):
     data = json.loads(request.body)
-    email = data.get('email')  # Get email from request data
-    user_id = data.get('user_id')  # Get user_id from request data
     print('data ', data)
-    
+    otp_method = data.get('otpMethod', 'email')  # Get OTP method from request
+    contact = data.get('email') if otp_method == 'email' else data.get('phone')
+    user_id = data.get('user_id')
+
     try:
-        user = User.objects.get(email=email)
+        # Find the billing based on the OTP method used
+        if otp_method == 'email':
+            user = User.objects.get(email=contact)
+        else:
+            user = User.objects.get(phone_number=contact)
+
         if user_id and str(user.id) != str(user_id):
             return JsonResponse({"message": "User ID mismatch"}, status=400)
             
@@ -401,7 +487,7 @@ def verify_otp(request):
         if billing.otp != sent_otp:
             return JsonResponse({"message": "Invalid OTP"}, status=400)
 
-        # Deduct seats for each selected course
+        # Handle selected courses and verify OTP
         selected_courses = billing.selected_courses
         print('selected_courses ', selected_courses)
         if selected_courses:
